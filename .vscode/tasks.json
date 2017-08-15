@@ -1,0 +1,44 @@
+{
+	// See https://go.microsoft.com/fwlink/?LinkId=733558
+	// for the documentation about the tasks.json format
+	"version": "2.0.0",
+	"output": "always",
+	"tasks": [
+		{
+			"isBackground": true,
+			"taskName": "tsc-watch",
+			"type": "process",
+			"command": "docker-compose",
+			"args": [
+				"run", "--rm", "node", "npm", "run", "tsc", "--", "-w"
+			],
+			"problemMatcher": [
+				"$tsc",
+				"$lessCompile"
+			],
+
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		},
+		{
+			"isBackground": true,
+			"taskName": "up",
+			"type": "process",
+			"command": "docker-compose",
+			"args": [
+				"up"
+			],
+			"problemMatcher": [
+				"$tsc",
+				"$lessCompile"
+			],
+
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		}
+	]
+}
