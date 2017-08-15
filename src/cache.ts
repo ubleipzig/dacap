@@ -42,7 +42,7 @@ export class Register {
 		});
 
 		fs.writeFileSync(path.resolve(this.storage, this.name), JSON.stringify(data), {encoding: 'utf8', flag: 'w'});
-		debug('register ${this.name} saved to ${this.storage}');
+		debug(`register "${this.name}" saved to "${this.storage}"`);
 	}
 
 	restore = async (): Promise<void> => {
@@ -52,7 +52,7 @@ export class Register {
 			this.cacheRegister[cache.name] = new Cache();
 			this.cacheRegister[cache.name].fromObject(cache.data);
 		});
-		debug('register ${this.name} restored from ${this.storage}');
+		debug(`register "${this.name}" restored from "${this.storage}"`);
 	}
 }
 
