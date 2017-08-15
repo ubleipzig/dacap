@@ -9,7 +9,19 @@ export interface EndpointValue {
 
 export class Endpoint {
 
-	constructor(private serverUrl:string) {
+	constructor(private serverUrl?:string) {
+	}
+
+	setEndpoint(serverUrl: string) {
+		this.serverUrl = serverUrl;
+	}
+
+	toObject() {
+		return {serverUrl: this.serverUrl};
+	}
+
+	fromObject (data) {
+		this.setEndpoint(data.serverUrl);
 	}
 
 	public request(uriPath:string, value:EndpointValue): Promise<void>{
