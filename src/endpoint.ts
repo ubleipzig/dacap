@@ -1,52 +1,38 @@
-import * as https from 'https';
 import * as path from 'path';
 import * as Q from 'q';
+import * as Url from 'url';
+import * as request from 'request';
 
 export interface EndpointValue {
+	uriPath: string;
 	contentType: string;
 	data: string;
 }
 
 export class Endpoint {
+	private serverUrl:Url.Url;
 
-	constructor(private serverUrl?:string) {
-	}
-
-	setEndpoint(serverUrl: string) {
-		this.serverUrl = serverUrl;
+	constructor(serverUrl?:string|Url.Url) {
+		this.serverUrl = (typeof serverUrl === 'string') ? Url.parse(serverUrl) : serverUrl;
 	}
 
 	toObject() {
-		return {serverUrl: this.serverUrl};
+		return Url.format(this.serverUrl);
 	}
 
-	fromObject (data) {
-		this.setEndpoint(data.serverUrl);
-	}
-
-	public request(uriPath:string, value:EndpointValue): Promise<void>{
+	request(value:EndpointValue): Promise<void>{
 		const deferred = Q.defer();
 
-		const req = https.request(this.serverUrl + uriPath, (res) => {
+		const req = request(Url.format(this.serverUrl) + value.uriPath, (err, res, body) => {
+			if (err) return deferred.reject(err);
 			value.contentType = <string>res.headers['content-type'];
+			value.data = body;
 
-			res.on('data', (chunk) => {
-				value.data += chunk;
-			});
-
-			res.on('end', () => {
-				if (res.statusCode !== 200)
-					return deferred.reject(new Error(`No status 200. not caching the result`));
-				deferred.resolve();
-			});
-		})
-
-		req.on('error', (err) => {
-			console.error(err);
-			deferred.reject(err);
+			if (res.statusCode !== 200)
+				return deferred.reject(new Error(`No status 200. not caching the result`));
+			return deferred.resolve();
 		});
 
-		req.end();
 		return deferred.promise;
 	}
 }

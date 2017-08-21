@@ -3,24 +3,14 @@
 	// for the documentation about the tasks.json format
 	"version": "2.0.0",
 	"output": "always",
-	"tasks": [
-		{
+	"tasks": [{
 			"isBackground": true,
-			"taskName": "tsc-watch",
+			"taskName": "console",
 			"type": "process",
 			"command": "docker-compose",
 			"args": [
-				"run", "--rm", "node", "npm", "run", "tsc", "--", "-w"
-			],
-			"problemMatcher": [
-				"$tsc",
-				"$lessCompile"
-			],
-
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			}
+				"run", "--rm", "node", "bash"
+			]
 		},
 		{
 			"isBackground": true,

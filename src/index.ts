@@ -13,15 +13,20 @@ const register = new cache.Register(storagePath, 'apis');
 
 register.restore();
 
+app.get(/favicon.ico/, (req, res, next) => {
+	res.send();
+});
+
 app.use(compression());
 
-app.get('/admin/add/:registerName', (req, res, next) => {
+app.get('/admin/register/add/:registerName/:ttl?', (req, res, next) => {
 	if (!req.query.url) return res.status(400).send(`you need to specify an url (e.g. ${req.url}?url=http://example.com)`);
-	register.add(req.params.registerName, req.query.url);
+	if (register.has(req.params.registerName)) return res.send(`already registered endpoint "${req.params.registerName}"`);
+	register.add(req.params.registerName, req.query.url, req.params.ttl || 10);
 	res.send(`added ${req.params.registerName} with URL "${req.query.url}"`)
 });
 
-app.get('/admin/list/register/:registerName', (req, res, next) => {
+app.get('/admin/register/list/:registerName', (req, res, next) => {
 
 })
 
