@@ -9,3 +9,9 @@
 /src
 /site
 /.tmp
+/test
+/coverage
+/.eslintrc.json
+/jsconfig.json
+/package-lock.json
+/report.xml
