@@ -16,7 +16,7 @@ export class Endpoint {
 		this.serverUrl = (typeof serverUrl === 'string') ? Url.parse(serverUrl) : serverUrl;
 	}
 
-	toObject() {
+	toString(): string {
 		return Url.format(this.serverUrl);
 	}
 

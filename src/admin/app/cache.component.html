@@ -1,0 +1,38 @@
+<div class="panel panel-primary">
+	<div class="panel-heading">
+		<h1>
+			{{data.name}}
+			<div class="btn-group pull-right">
+				<button type="button" class="btn btn-danger" (click)="delete()">Delete Cache</button>
+			</div>
+			<div class="btn-group pull-right">
+				<button type="button" class="btn btn-warning" (click)="flush()">Flush Values</button>
+			</div>
+		</h1>
+	</div>
+	<div class="panel-body">
+		<div class="row">
+			<div class="col-md-6">
+				<label>API-Endpoint:</label>
+				<pre>{{data.apiEndPoint}}</pre>
+			</div>
+			<div class="col-md-6">
+				<label>Proxy-Endpoint:</label>
+				<pre>{{data.proxyEndPoint}}</pre>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-6">
+				<cache-options [data]="data.cacheOptions"></cache-options>
+			</div>
+			<div class="col-md-6">
+				<cache-stats [data]="data.cacheStats"></cache-stats>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-12">
+				<cache-details [cache]="data.cache" [proxyEndPoint]="data.proxyEndPoint" [name]="data.name"></cache-details>
+			</div>
+		</div>
+	</div>
+</div>

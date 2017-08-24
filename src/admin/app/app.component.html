@@ -1,0 +1,10 @@
+<div class="jumbotron">
+	<div class="container">
+		<h1>Admin Interface</h1>
+		<p>shows all cache caches available.</p>
+	</div>
+</div>
+<add-cache (onAdd)="addCache($event)"></add-cache>
+<div class="container">
+	<cache *ngFor="let item of caches" [data]="item" (onDelete)="removeCache($event)"></cache>
+</div>

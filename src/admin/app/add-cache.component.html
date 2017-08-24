@@ -1,0 +1,27 @@
+<div class="container">
+	<div class="panel panel-success">
+		<div class="panel-heading">
+			<h3>Add new Cache</h3>
+		</div>
+		<div class="panel-body">
+			<div class="row">
+				<div class="col-md-6">
+					<label for="api-endpoint">Api-Endpoint:</label>
+					<div class="input-group">
+						<input id="api-endpoint" type="text" class="form-control" size="200" [(ngModel)]="apiEndPoint">
+					</div>
+				</div>
+				<div class="col-md-6">
+					<label for="cache-name">Cache-Name</label>
+					<div class="input-group">
+						<span class="input-group-addon" id="basic-addon3">{{proxyUrl}}</span>
+						<input id="cache-name" type="text" class="form-control" aria-describedby="basic-addon3" [(ngModel)]="name">
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-primary" (click)="submit()">Add</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

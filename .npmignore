@@ -1,0 +1,9 @@
+/.git*
+/docker-compose.yml
+/data
+/.vscode
+/docs
+/mkdocs.yml
+/tsconfig.json
+/webpack.*.js
+/src

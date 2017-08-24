@@ -8,30 +8,62 @@ import * as Q from 'q';
 
 import { Endpoint, EndpointValue } from './endpoint';
 
-const debug = debugFactory('decap:cache');
+const debug = debugFactory('dacap:cache');
 
-interface MiddlewareFunction {
+export interface MiddlewareFunction {
 	(req: express.Request, res: express.Response, next: express.NextFunction): Promise<void>
+}
+
+export interface RegisterObject {
+	name: string
+	data: CacheObject
+}
+export interface CacheObject {
+	endPoint: string,
+	cacheOptions: NodeCache.Options,
+	cache: [
+		{
+			hash: string,
+			value: any
+		}
+	]
+}
+
+export interface CacheDetails {
+	hash: string,
+	uriPath: string,
+	contentType: string,
+	ttl: number,
+	size: number
+}
+
+export interface CacheInfo {
+	name: string,
+	apiEndPoint: string,
+	proxyEndPoint: string,
+	cacheOptions: NodeCache.Options,
+	cacheStats: NodeCache.Stats,
+	cache: CacheDetails[],
 }
 
 export function Middleware(register: Register): MiddlewareFunction {
 
-		return async function (req: express.Request, res: express.Response, next: express.NextFunction): Promise<void> {
-			const pattern = new RegExp('^/([^/]+)/?(.*)$');
-			const match = req.url.match(pattern);
-			try {
-				const cache = register.get(match[1]);
-				const uniQueryString = Object.keys(req.query).sort().map(function (key) { return `${key}=${req.query[key]}` }).join('&');
-				const hash = crypto.createHash('sha1').update(req.path + uniQueryString).digest('base64');
-				debug(`finding cache-entry for ${hash}`);
-				const value = await cache.get(hash, match[2]);
-				res.setHeader('content-type', value.contentType)
-				res.send(value.data);
-			} catch (err) {
-				res.status(404).send(err.message);
-			}
+	return async function (req: express.Request, res: express.Response, next: express.NextFunction): Promise<void> {
+		const pattern = new RegExp('^/([^/]+)/?(.*)$');
+		const match = req.url.match(pattern);
+		try {
+			const cache = register.get(match[1]);
+			const uniQueryString = Object.keys(req.query).sort().map(function (key) { return `${key}=${req.query[key]}` }).join('&');
+			const hash = crypto.createHash('sha1').update(req.path + uniQueryString).digest('hex');
+			debug(`finding cache-entry for ${hash}`);
+			const value = await cache.get(hash, match[2]);
+			res.setHeader('content-type', value.contentType)
+			res.send(value.data);
+		} catch (err) {
+			res.status(404).send(err.message);
 		}
 	}
+}
 
 /**
  * the cache register
@@ -64,21 +96,45 @@ export class Register {
 	 *
 	 * @memberof Register
 	 */
-	add = (name: string, serverUrl:string, ttl) => {
+	add = (name: string, serverUrl: string, cacheOptions: NodeCache.Options) => {
 		const endpoint: Endpoint = new Endpoint(serverUrl);
-		const nodeCache: NodeCache = new NodeCache({ useClones: false, stdTTL: ttl, checkperiod: 10, deleteOnExpire: false })
+		const nodeCache: NodeCache = new NodeCache(cacheOptions)
 		this.cacheRegister[name] = new Cache(endpoint, nodeCache);
 	}
 
-	save = () => {
-		const data = Object.keys(this.cacheRegister).map((name) => {
+	delete(name: string) {
+		if (!this.has(name)) throw new Error(`register not found: ${name}`);
+		delete this.cacheRegister[name];
+	}
+
+	getInfo = (proxyUrl: string, name?: string): CacheInfo|CacheInfo[] => {
+		return (name) ? this._getInfo(proxyUrl, name) : Object.keys(this.cacheRegister).map((key): CacheInfo => {
+			return this._getInfo(proxyUrl, key);
+		});
+	}
+
+	private _getInfo(proxyUrl: string, name: string): CacheInfo {
+		return {
+			name: name,
+			apiEndPoint: this.cacheRegister[name].getEndpoint().toString(),
+			proxyEndPoint: proxyUrl + name + '/',
+			cacheOptions: this.cacheRegister[name].getCache().options,
+			cacheStats: this.cacheRegister[name].getCache().getStats(),
+			cache: <CacheDetails[]>this.cacheRegister[name].getDetails()
+		}
+	}
+
+	toObject = (): RegisterObject[] => {
+		return Object.keys(this.cacheRegister).map((name) => {
 			return {
 				name: name,
 				data: this.cacheRegister[name].toObject()
 			}
 		});
+	}
 
-		fs.writeFileSync(path.resolve(this.storage, this.name), JSON.stringify(data), {encoding: 'utf8', flag: 'w'});
+	save = (): void => {
+		fs.writeFileSync(path.resolve(this.storage, this.name), JSON.stringify(this.toObject()), { encoding: 'utf8', flag: 'w' });
 		debug(`register "${this.name}" saved to "${this.storage}"`);
 	}
 
@@ -104,10 +160,29 @@ export class Cache {
 		return this;
 	}
 
+	getEndpoint(): Endpoint {
+		return this.endpoint;
+	}
+
 	setCache(realCache: NodeCache): this {
 		this.realCache = realCache;
-		this.realCache.on('expired', this.refresh.bind(this));
+		this.realCache.on('expired', (key, value) => {
+			debug(`hash "${key}" has expired`);
+			this.refresh(key, value);
+		})
 		return this;
+	}
+
+	getCache(): NodeCache {
+		return this.realCache;
+	}
+
+	flush() {
+		return this.realCache.flushAll();
+	}
+
+	del(hash) {
+		return this.realCache.del(hash);
 	}
 
 	async get(hash: string, path: string): Promise<EndpointValue> {
@@ -133,8 +208,7 @@ export class Cache {
 		return value;
 	}
 
-	async refresh (key, value) {
-		debug(`hash "${key}" has expired`);
+	async refresh(key, value) {
 		const newValue = {
 			uriPath: value.uriPath,
 			contentType: '',
@@ -142,13 +216,32 @@ export class Cache {
 		}
 		await this.endpoint.request(newValue);
 		value.data = newValue.data;
+		value.contentType = newValue.contentType;
 		this.realCache.set(key, value);
 		debug(`successfully refreshed "${key}"`);
 	}
 
-	toObject() {
+	keys = (): string[] => {
+		return this.realCache.keys();
+	}
+
+	getDetails<T>(hash?:string): CacheDetails|CacheDetails[] {
+		return (hash) ? this._getDetails(hash) : this.realCache.keys().map(this._getDetails.bind(this));
+	}
+
+	private _getDetails(hash: string): CacheDetails {
+		return {
+			hash: hash,
+			ttl: this.realCache.getTtl(hash),
+			uriPath: this.realCache.get<EndpointValue>(hash).uriPath,
+			contentType: this.realCache.get<EndpointValue>(hash).contentType,
+			size: this.realCache.get<EndpointValue>(hash).data.length
+		};
+	}
+
+	toObject(): CacheObject {
 		const data = {
-			endPoint: this.endpoint.toObject(),
+			endPoint: this.endpoint.toString(),
 			cacheOptions: this.realCache.options,
 			cache: []
 		}
@@ -156,11 +249,11 @@ export class Cache {
 		this.realCache.keys().map((hash) => {
 			data.cache.push({
 				hash: hash,
-				value: this.realCache.get(hash)
+				value: this.realCache.get<EndpointValue>(hash)
 			});
 		});
 
-		return data;
+		return <CacheObject>data;
 	}
 
 	fromObject(data) {

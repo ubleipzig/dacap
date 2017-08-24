@@ -1,0 +1,42 @@
+<div class="panel panel-info">
+	<div class="panel-heading">
+		<h4>Cache Details</h4>
+	</div>
+	<div class="panel-body">
+		<div class="row" *ngFor="let item of cache">
+			<div class="col-md-12">
+				<div class="row">
+					<div class="col-md-10">
+						<label><code>{{item.hash}}</code></label>
+					</div>
+					<div class="col-md-1">
+						<button type="button" class="btn btn-primary btn-xs pull-right" (click)="refresh(item.hash)">Refresh Value</button>
+					</div>
+					<div class="col-md-1">
+						<button type="button" class="btn btn-danger btn-xs pull-right" (click)="delete(item.hash)">Delete Value</button>
+					</div>
+				</div>
+				<div class="table-responsive">
+					<table class="table table-bordered table-striped">
+						<tr>
+							<th class="text-nowrap" scope="row">Time-To-Live:</th>
+							<td>{{item.ttl | date:"HH:mm:ss - yyyy-MM-dd"}}</td>
+						</tr>
+						<tr>
+							<th class="text-nowrap" scope="row">Path-Element:</th>
+							<td><a href="{{proxyEndPoint}}{{item.uriPath}}" target="_blank">{{item.uriPath}}</a></td>
+						</tr>
+						<tr>
+							<th class="text-nowrap" scope="row">Content-Type:</th>
+							<td>{{item.contentType}}</td>
+						</tr>
+						<tr>
+							<th class="text-nowrap" scope="row">Size:</th>
+							<td>{{item.size}}</td>
+						</tr>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
