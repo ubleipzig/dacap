@@ -7,3 +7,5 @@
 /tsconfig.json
 /webpack.*.js
 /src
+/site
+/.tmp
