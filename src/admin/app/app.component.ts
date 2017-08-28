@@ -1,5 +1,5 @@
 import { Component, OnInit, enableProdMode } from '@angular/core';
-import { Cache } from './cache';
+import { Cache, Config } from './cache';
 import { CacheService } from './cache.service';
 
 @Component({
@@ -12,12 +12,17 @@ import { CacheService } from './cache.service';
 
 export class AppComponent implements OnInit {
   caches: Cache[];
+  config: Config = new Config();
 
   constructor(private cacheService: CacheService) { }
 
   ngOnInit(): void {
     this.cacheService.getCaches().then((result) => {
       this.caches = result;
+    })
+
+    this.cacheService.getConfig().then((result) => {
+      this.config = result;
     })
 
   }

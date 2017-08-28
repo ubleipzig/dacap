@@ -20,7 +20,7 @@ services:
       - APP_TMP_DIR=/tmp
       - DEBUG=*
     command:
-      - npm run inspect
+      - npm run inspect-watch
     hostname: api.ub.uni-leipzig.de
 
 volumes:

@@ -4,7 +4,7 @@
 		<p>shows all cache caches available.</p>
 	</div>
 </div>
-<add-cache (onAdd)="addCache($event)"></add-cache>
+<add-cache [proxyUrl]="config.proxyUrl + config.proxyPath" (onAdd)="addCache($event)"></add-cache>
 <div class="container">
-	<cache *ngFor="let item of caches" [data]="item" (onDelete)="removeCache($event)"></cache>
+	<cache *ngFor="let item of caches" [data]="item" [proxyUrl]="config.proxyUrl + config.proxyPath" (onDelete)="removeCache($event)"></cache>
 </div>

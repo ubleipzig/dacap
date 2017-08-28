@@ -16,7 +16,17 @@ const defaultObjectValueSize = parseInt(process.env.object_value_size) || 80;
 const autosaveInterval = parseInt(process.env.autosave_interval) || 60;
 const registerName = process.env.register_name || 'api-cache';
 
-const server = new Server(storagePath, proxyPath, proxyUrl, defaultTtl, defaultCheckPeriod, defaultArrayValueSize, defaultObjectValueSize, autosaveInterval, registerName);
+const server = new Server({
+	storagePath: storagePath,
+	proxyPath: proxyPath,
+	proxyUrl: proxyUrl,
+	defaultTtl: defaultTtl,
+	defaultCheckPeriod: defaultCheckPeriod,
+	defaultArrayValueSize: defaultArrayValueSize,
+	defaultObjectValueSize: defaultObjectValueSize,
+	autosaveInterval: autosaveInterval,
+	registerName: registerName
+});
 
 server.listen(proxyPort, () => {
 	debug('server up and running');

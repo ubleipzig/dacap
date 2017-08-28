@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CacheService } from './cache.service';
 import { Cache } from './cache';
 
@@ -10,7 +10,7 @@ import { Cache } from './cache';
 export class AddCacheComponent {
 	name: string;
 	apiEndPoint: string;
-	proxyUrl: string;
+	@Input () proxyUrl: string;
 	@Output() onAdd: EventEmitter<Cache> = new EventEmitter();
 
 	constructor(private cacheService: CacheService) { }

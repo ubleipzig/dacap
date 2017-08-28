@@ -18,7 +18,7 @@
 			</div>
 			<div class="col-md-6">
 				<label>Proxy-Endpoint:</label>
-				<pre>{{data.proxyEndPoint}}</pre>
+				<pre>{{proxyUrl}}{{data.name}}/</pre>
 			</div>
 		</div>
 		<div class="row">
@@ -31,7 +31,7 @@
 		</div>
 		<div class="row">
 			<div class="col-md-12">
-				<cache-details [cache]="data.cache" [proxyEndPoint]="data.proxyEndPoint" [name]="data.name"></cache-details>
+				<cache-details [cache]="data.cache" [proxyEndPoint]="proxyUrl + data.name + '/'" [name]="data.name"></cache-details>
 			</div>
 		</div>
 	</div>

@@ -34,3 +34,15 @@ export class CacheDetails {
 	contentType: string;
 	size: number;
 }
+
+export class Config {
+	storagePath: string;
+	proxyPath: string;
+	proxyUrl: string;
+	defaultTtl: number;
+	defaultCheckPeriod: number;
+	defaultArrayValueSize: number;
+	defaultObjectValueSize: number;
+	autosaveInterval: number;
+	registerName: string;
+}

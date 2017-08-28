@@ -11,6 +11,7 @@ import { Cache } from './cache';
 
 export class CacheComponent {
 	@Input() data: Cache;
+	@Input() proxyUrl: string
 	@Output() onDelete: EventEmitter<string> = new EventEmitter();
 
 	constructor(private cacheService: CacheService, private appComponent: AppComponent) { }

@@ -11,23 +11,24 @@ export class Server {
 	private register: cache.Register;
 	private expressApp: express.Application;
 
-	constructor(private storagePath: string,
-		private proxyPath: string,
-		private proxyUrl: string,
-		private defaultTtl: number,
-		private defaultCheckPeriod: number,
-		private defaultArrayValueSize: number,
-		private defaultObjectValueSize: number,
-		private autosaveInterval: number,
-		private registerName: string) {
-
+	constructor(private config: {
+		storagePath: string,
+		proxyPath: string,
+		proxyUrl: string,
+		defaultTtl: number,
+		defaultCheckPeriod: number,
+		defaultArrayValueSize: number,
+		defaultObjectValueSize: number,
+		autosaveInterval: number,
+		registerName: string
+	}) {
 		this._init();
 	}
 
 	private _init() {
-		this.register = new cache.Register(this.storagePath, this.registerName);
+		this.register = new cache.Register(this.config.storagePath, this.config.registerName);
 		this.register.restore();
-		setTimeout(this.register.save, this.autosaveInterval * 1000);
+		setTimeout(this.register.save, this.config.autosaveInterval * 1000);
 
 		this.expressApp = express();
 		this.expressApp.get(/favicon.ico/, (req, res, next) => {
@@ -37,27 +38,31 @@ export class Server {
 		this.expressApp.use(compression());
 		this.expressApp.use(bodyparser.json());
 
-		this.expressApp.post('/api/add/cache/:name', (req, res, next) => {
+		this.expressApp.get('/admin/api/config', (req, res, next) => {
+			return res.json(this.config);
+		});
+
+		this.expressApp.post('/admin/api/add/cache/:name', (req, res, next) => {
 			if (!req.body || !req.body.apiEndPoint) return res.status(400).send(`you need to specify at least an url`);
 			if (this.register.has(req.body.name)) return res.send(`already registered endpoint "${req.params.name}"`);
 			this.register.add(req.params.name, req.body.apiEndPoint, {
-				stdTTL: req.body.cacheOptions.ttl || this.defaultTtl,
-				checkperiod: req.body.cacheOptions.checkPeriod || this.defaultCheckPeriod,
-				objectValueSize: req.body.cacheOptions.objectValueSize || this.defaultObjectValueSize,
-				arrayValueSize: req.body.cacheOptions.arrayValueSize || this.defaultArrayValueSize
+				stdTTL: req.body.cacheOptions.ttl || this.config.defaultTtl,
+				checkperiod: req.body.cacheOptions.checkPeriod || this.config.defaultCheckPeriod,
+				objectValueSize: req.body.cacheOptions.objectValueSize || this.config.defaultObjectValueSize,
+				arrayValueSize: req.body.cacheOptions.arrayValueSize || this.config.defaultArrayValueSize
 			});
-			res.json(this.register.getInfo(this.proxyUrl + this.proxyPath, req.params.name));
+			res.json(this.register.getInfo(req.params.name));
 		});
 
-		this.expressApp.get('/api/list/cache', async (req, res, next) => {
+		this.expressApp.get('/admin/api/list/cache', async (req, res, next) => {
 			try {
-				res.json(this.register.getInfo(this.proxyUrl + this.proxyPath));
+				res.json(this.register.getInfo());
 			} catch (err) {
 				next(err);
 			}
 		});
 
-		this.expressApp.get('/api/delete/cache/:name', (req, res, next) => {
+		this.expressApp.get('/admin/api/delete/cache/:name', (req, res, next) => {
 			try {
 				this.register.delete(req.params.name);
 				res.json({});
@@ -66,17 +71,17 @@ export class Server {
 			}
 		})
 
-		this.expressApp.get('/api/flush/cache/:name', (req, res, next) => {
+		this.expressApp.get('/admin/api/flush/cache/:name', (req, res, next) => {
 			try {
 				const cache = this.register.get(req.params.name)
 				cache.flush();
-				res.json(this.register.getInfo(this.proxyUrl + this.proxyPath, req.params.name));
+				res.json(this.register.getInfo(req.params.name));
 			} catch (err) {
 				next(err);
 			}
 		});
 
-		this.expressApp.get('/api/delete/cache/:name/key/:hash', (req, res, next) => {
+		this.expressApp.get('/admin/api/delete/cache/:name/key/:hash', (req, res, next) => {
 			try {
 				const cache = this.register.get(req.params.name)
 				cache.del(req.params.hash);
@@ -86,7 +91,7 @@ export class Server {
 			}
 		})
 
-		this.expressApp.get('/api/refresh/cache/:name/key/:hash', async (req, res, next) => {
+		this.expressApp.get('/admin/api/refresh/cache/:name/key/:hash', async (req, res, next) => {
 			try {
 				const cache = this.register.get(req.params.name);
 				const value = cache.getCache().get(req.params.hash);
@@ -99,10 +104,10 @@ export class Server {
 
 		this.expressApp.use('/admin/', express.static(path.resolve(__dirname, '..', 'public')));
 
-		this.expressApp.use(this.proxyPath, cache.Middleware(this.register));
+		this.expressApp.use(this.config.proxyPath, cache.Middleware(this.register));
 	}
 
 	listen(port: number, cb) {
-		return this.expressApp.listen(port, cb);
+		this.expressApp.listen(port, cb);
 	}
 }

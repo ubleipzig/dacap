@@ -40,7 +40,6 @@ export interface CacheDetails {
 export interface CacheInfo {
 	name: string,
 	apiEndPoint: string,
-	proxyEndPoint: string,
 	cacheOptions: NodeCache.Options,
 	cacheStats: NodeCache.Stats,
 	cache: CacheDetails[],
@@ -107,17 +106,16 @@ export class Register {
 		delete this.cacheRegister[name];
 	}
 
-	getInfo = (proxyUrl: string, name?: string): CacheInfo|CacheInfo[] => {
-		return (name) ? this._getInfo(proxyUrl, name) : Object.keys(this.cacheRegister).map((key): CacheInfo => {
-			return this._getInfo(proxyUrl, key);
+	getInfo = (name?: string): CacheInfo|CacheInfo[] => {
+		return (name) ? this._getInfo(name) : Object.keys(this.cacheRegister).map((key): CacheInfo => {
+			return this._getInfo(key);
 		});
 	}
 
-	private _getInfo(proxyUrl: string, name: string): CacheInfo {
+	private _getInfo(name: string): CacheInfo {
 		return {
 			name: name,
 			apiEndPoint: this.cacheRegister[name].getEndpoint().toString(),
-			proxyEndPoint: proxyUrl + name + '/',
 			cacheOptions: this.cacheRegister[name].getCache().options,
 			cacheStats: this.cacheRegister[name].getCache().getStats(),
 			cache: <CacheDetails[]>this.cacheRegister[name].getDetails()
