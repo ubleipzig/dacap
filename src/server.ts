@@ -5,12 +5,14 @@ import * as path from 'path';
 import * as cache from './cache';
 import * as bodyparser from 'body-parser';
 import * as cors from 'cors';
+import * as url from 'url';
 const debug = debugFactory('dacap:server');
 
 export class Server {
 	private register: cache.Register;
 	private expressApp: express.Application;
 	private corsOptions: cors.CorsOptions;
+	private prePath: string = '';
 
 	constructor(private config: {
 		storagePath: string,
@@ -21,9 +23,13 @@ export class Server {
 		defaultArrayValueSize: number,
 		defaultObjectValueSize: number,
 		autosaveInterval: number,
-		registerName: string
+		registerName: string,
+		stripPath: boolean
 	}) {
 
+		if (this.config.stripPath === false) {
+			this.prePath = url.parse(this.config.proxyUrl).path;
+		}
 		this.expressApp = express();
 
 		this.initRegister();
@@ -57,11 +63,11 @@ export class Server {
 			res.send();
 		});
 
-		this.expressApp.get('/admin/api/config', (req, res, next) => {
+		this.expressApp.get(this.prePath + '/admin/api/config', (req, res, next) => {
 			return res.json(this.config);
 		});
 
-		this.expressApp.post('/admin/api/add/cache/:name', (req, res, next) => {
+		this.expressApp.post(this.prePath + '/admin/api/add/cache/:name', (req, res, next) => {
 			if (!req.body || !req.body.apiEndPoint) return res.status(400).send(`you need to specify at least an url`);
 			if (this.register.has(req.body.name)) return res.send(`already registered endpoint "${req.params.name}"`);
 			this.register.add(req.params.name, req.body.apiEndPoint, {
@@ -73,7 +79,7 @@ export class Server {
 			res.json(this.register.getInfo(req.params.name));
 		});
 
-		this.expressApp.get('/admin/api/list/cache', async (req, res, next) => {
+		this.expressApp.get(this.prePath + '/admin/api/list/cache', async (req, res, next) => {
 			try {
 				res.json(this.register.getInfo());
 			} catch (err) {
@@ -81,7 +87,7 @@ export class Server {
 			}
 		});
 
-		this.expressApp.get('/admin/api/delete/cache/:name', (req, res, next) => {
+		this.expressApp.get(this.prePath + '/admin/api/delete/cache/:name', (req, res, next) => {
 			try {
 				this.register.delete(req.params.name);
 				res.json({});
@@ -90,7 +96,7 @@ export class Server {
 			}
 		})
 
-		this.expressApp.get('/admin/api/flush/cache/:name', (req, res, next) => {
+		this.expressApp.get(this.prePath + '/admin/api/flush/cache/:name', (req, res, next) => {
 			try {
 				const cache = this.register.get(req.params.name)
 				cache.flush();
@@ -100,7 +106,7 @@ export class Server {
 			}
 		});
 
-		this.expressApp.get('/admin/api/delete/cache/:name/key/:hash', (req, res, next) => {
+		this.expressApp.get(this.prePath + '/admin/api/delete/cache/:name/key/:hash', (req, res, next) => {
 			try {
 				const cache = this.register.get(req.params.name)
 				cache.del(req.params.hash);
@@ -110,7 +116,7 @@ export class Server {
 			}
 		})
 
-		this.expressApp.get('/admin/api/refresh/cache/:name/key/:hash', async (req, res, next) => {
+		this.expressApp.get(this.prePath + '/admin/api/refresh/cache/:name/key/:hash', async (req, res, next) => {
 			try {
 				const cache = this.register.get(req.params.name);
 				const value = cache.getCache().get(req.params.hash);
@@ -121,9 +127,9 @@ export class Server {
 			}
 		});
 
-		this.expressApp.use('/admin/', express.static(path.resolve(__dirname, '..', 'public')));
+		this.expressApp.use(this.prePath + '/admin/', express.static(path.resolve(__dirname, '..', 'public')));
 
-		this.expressApp.use(this.config.proxyPath, cache.Middleware(this.register));
+		this.expressApp.use(this.prePath + this.config.proxyPath, cache.Middleware(this.register));
 	}
 
 	listen(port: number, cb) {

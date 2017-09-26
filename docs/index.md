@@ -52,6 +52,6 @@ The service can be configured by environment variables. The following are availa
 * `default_check_period`: specifies the interval in seconds the cache is checked for expiry. Defaults to `60`
 * `array_value_size`: unkown configuration. Defaults to `40`
 * `object_value_size`: unkown configuration. Defaults to `80`
-* `autosave_interval`: specifies the interval the cache is stored to harddisk. defaults to `60`;
-* `register_name`: specifies the name of the register where the cache is stored. Defaults to `api-cache`;
-
+* `autosave_interval`: specifies the interval the cache is stored to harddisk. defaults to `60`
+* `register_name`: specifies the name of the register where the cache is stored. Defaults to `api-cache`
+* `strip_path`: specifies whether the path should be stripped when processing requests
