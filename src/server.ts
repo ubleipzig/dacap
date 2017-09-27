@@ -6,6 +6,8 @@ import * as cache from './cache';
 import * as bodyparser from 'body-parser';
 import * as cors from 'cors';
 import * as url from 'url';
+import * as PrettyPrint from 'js-object-pretty-print';
+
 const debug = debugFactory('dacap:server');
 
 export class Server {
@@ -26,6 +28,8 @@ export class Server {
 		registerName: string,
 		stripPath: boolean
 	}) {
+
+		debug(`starting up with this config: ` + PrettyPrint.pretty(this.config));
 
 		if (this.config.stripPath === false) {
 			this.prePath = url.parse(this.config.proxyUrl).path;
