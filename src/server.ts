@@ -44,8 +44,7 @@ export class Server {
 	private initRegister() {
 		this.register = new cache.Register(this.config.storagePath, this.config.registerName);
 		this.register.restore();
-		setTimeout(this.register.save, this.config.autosaveInterval * 1000);
-
+		this.register.save(this.config.autosaveInterval * 1000);
 	}
 
 	private initMiddlewares() {

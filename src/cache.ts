@@ -131,9 +131,12 @@ export class Register {
 		});
 	}
 
-	save = (): void => {
-		fs.writeFileSync(path.resolve(this.storage, this.name), JSON.stringify(this.toObject()), { encoding: 'utf8', flag: 'w' });
-		debug(`register "${this.name}" saved to "${this.storage}"`);
+	save = (interval:number): void => {
+		setTimeout(() => {
+			fs.writeFileSync(path.resolve(this.storage, this.name), JSON.stringify(this.toObject()), { encoding: 'utf8', flag: 'w' });
+			debug(`register "${this.name}" saved to "${this.storage}"`);
+			this.save(interval);
+		}, interval);
 	}
 
 	restore = async (): Promise<void> => {
