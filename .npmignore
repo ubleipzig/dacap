@@ -15,3 +15,5 @@
 /jsconfig.json
 /package-lock.json
 /report.xml
+/Dockerfile
+/*.tgz
