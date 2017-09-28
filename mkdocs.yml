@@ -1,1 +1,5 @@
 site_name: dacap
+
+pages:
+  - Deutsch: "index.md"
+  - English: "Readme.md"
