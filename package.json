@@ -1,6 +1,6 @@
 {
   "name": "dacap",
-  "version": "1.0.7",
+  "version": "1.0.9",
   "description": "proxies,compresses and caches api-requests",
   "main": "bin/dacap",
   "bin": {
@@ -16,7 +16,7 @@
     "inspect-watch": "tsc-watch --onSuccess 'node --inspect=0.0.0.0:9229 bin/dacap'",
     "inspect-brk-watch": "tsc-watch --onSuccess 'node --inspect-brk=0.0.0.0:9229 bin/dacap'",
     "test": "mocha",
-    "ci": "istanbul cover _mocha -- --no-colors --timeout 10000 --reporter mocha-jenkins-reporter",
+    "ci": "istanbul cover _mocha -- --timeout 10000",
     "build": "rm -rf dist public && tsc --declaration && webpack --config webpack.prod.js"
   },
   "author": "Ulf Seltmann <ulf.seltmann@uni-leipzig.de>",
