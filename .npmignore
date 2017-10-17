@@ -17,3 +17,4 @@
 /report.xml
 /Dockerfile
 /*.tgz
+/.gitlab-ci.yml

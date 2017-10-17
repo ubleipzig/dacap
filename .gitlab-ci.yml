@@ -37,20 +37,20 @@ npm_ci:
   tags:
     - docker
 
-npm_publish:
+npm_pack:
   stage: publish_app
   only:
   - master
   image: node:8-alpine
   script:
-  - echo "//docker.ub.intern.uni-leipzig.de/:_authToken=${NPM_TOKEN}" > ~/.npmrc
-  - npm publish
+  - npm pack
   cache:
     key: "${CI_COMMIT_SHA}"
     paths:
     - node_modules
     - dist
     - public
+    - "*.tgz"
   tags:
     - docker
 
@@ -62,10 +62,10 @@ docker_build:
   services:
   - docker:dind
   script:
-  - docker login --username '${DOCKER_USER}' --password '${DOCKER_PASSWORD}'
-  - docker build --no-cache --pull -t ubleipzig/dacap:latest .
-  - docker tag ubleipzig/dacap:latest ubleipzig/dacap:${CI_PIPELINE_ID}
-  - docker push ubleipzig/dacap:${CI_PIPELINE_ID}
-  - docker push ubleipzig/dacap:latest
+  - docker login --username ${DOCKER_USER} --password ${DOCKER_PASSWORD}
+  - docker build --no-cache --pull -t bdddev/dacap:latest .
+  - docker tag ubleipzig/dacap:latest bdddev/dacap:${CI_PIPELINE_ID}
+  - docker push bdddev/dacap:${CI_PIPELINE_ID}
+  - docker push bdddev/dacap:latest
   tags:
     - docker
