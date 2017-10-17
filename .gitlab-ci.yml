@@ -31,7 +31,6 @@ npm_ci:
   cache:
     key: "${CI_COMMIT_SHA}"
     paths:
-    - node_modules
     - dist
     - public
   tags:
@@ -47,9 +46,6 @@ npm_pack:
   cache:
     key: "${CI_COMMIT_SHA}"
     paths:
-    - node_modules
-    - dist
-    - public
     - "*.tgz"
   tags:
     - docker
@@ -67,5 +63,9 @@ docker_build:
   - docker tag ubleipzig/dacap:latest bdddev/dacap:${CI_PIPELINE_ID}
   - docker push bdddev/dacap:${CI_PIPELINE_ID}
   - docker push bdddev/dacap:latest
+  cache:
+    key: "${CI_COMMIT_SHA}"
+    paths:
+    - "*.tgz"
   tags:
     - docker
