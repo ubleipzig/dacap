@@ -60,7 +60,7 @@ docker_build:
   script:
   - docker login --username ${DOCKER_USER} --password ${DOCKER_PASSWORD}
   - docker build --no-cache --pull -t bdddev/dacap:latest .
-  - docker tag ubleipzig/dacap:latest bdddev/dacap:${CI_PIPELINE_ID}
+  - docker tag bdddev/dacap:latest bdddev/dacap:${CI_PIPELINE_ID}
   - docker push bdddev/dacap:${CI_PIPELINE_ID}
   - docker push bdddev/dacap:latest
   cache:
