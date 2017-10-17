@@ -2,6 +2,9 @@
 
 *Dynamic And Compressing Api Proxy* is a service which lets you proxy arbitrary API-Endpoints which are by themself to slow to be used in production environments. All cached Responses are held in memory, so be sure to provide enough.
 
+[![pipeline status](https://git.sc.uni-leipzig.de/ubl/bdd_dev/dacap/badges/master/pipeline.svg)](https://git.sc.uni-leipzig.de/ubl/bdd_dev/dacap/commits/master)
+[![coverage report](https://git.sc.uni-leipzig.de/ubl/bdd_dev/dacap/badges/master/coverage.svg)](https://git.sc.uni-leipzig.de/ubl/bdd_dev/dacap/commits/master)
+
 ## Requirements
 
 * node >= v8.2.1

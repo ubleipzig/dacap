@@ -1,0 +1,71 @@
+stages:
+- build_app
+- test_app
+- publish_app
+- build_image
+- publish_image
+
+variables:
+  npm_config_registry: https://docker.ub.intern.uni-leipzig.de/npm
+
+npm_install:
+  stage: build_app
+  image: node:8-alpine
+  script:
+  - npm install
+  - npm run build
+  cache:
+    key: "${CI_COMMIT_SHA}"
+    paths:
+    - node_modules
+    - dist
+    - public
+  tags:
+    - docker
+
+npm_ci:
+  stage: test_app
+  image: node:8-alpine
+  script:
+  - npm run ci
+  cache:
+    key: "${CI_COMMIT_SHA}"
+    paths:
+    - node_modules
+    - dist
+    - public
+  tags:
+    - docker
+
+npm_publish:
+  stage: publish_app
+  only:
+  - master
+  image: node:8-alpine
+  script:
+  - echo "//docker.ub.intern.uni-leipzig.de/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+  - npm publish
+  cache:
+    key: "${CI_COMMIT_SHA}"
+    paths:
+    - node_modules
+    - dist
+    - public
+  tags:
+    - docker
+
+docker_build:
+  stage: build_image
+  only:
+  - master
+  image: docker:latest
+  services:
+  - docker:dind
+  script:
+  - docker login --username ${DOCKER_USER} --password ${DOCKER_PASSWORD}
+  - docker build --no-cache --pull -t ubleipzig/dacap:latest .
+  - docker tag ubleipzig/dacap:latest ubleipzig/dacap:${CI_PIPELINE_ID}
+  - docker push ubleipzig/dacap:${CI_PIPELINE_ID}
+  - docker push ubleipzig/dacap:latest
+  tags:
+    - docker
