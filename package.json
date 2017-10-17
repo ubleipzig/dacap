@@ -1,6 +1,6 @@
 {
   "name": "dacap",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "proxies,compresses and caches api-requests",
   "main": "bin/dacap",
   "bin": {
