@@ -1,7 +1,8 @@
 FROM library/node:8-alpine
 VOLUME ["/data"]
 EXPOSE 3000
-ENV data_dir=/data \
+ENV npm_config_registry=https://services.ub.uni-leipzig.de/npm \
+ data_dir=/data \
  NODE_ENV=production \
  APP_VERSION=1.0.10
 COPY dacap-${APP_VERSION}.tgz /tmp/

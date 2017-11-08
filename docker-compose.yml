@@ -14,6 +14,7 @@ services:
         aliases:
           - api.ub.uni-leipzig.de
     environment:
+      - npm_config_registry=https://services.ub.uni-leipzig.de/npm
       - NODE_ENV=development
       - DEBUG=dacap:*
       - APP_DATA_DIR=/var/lib/app
