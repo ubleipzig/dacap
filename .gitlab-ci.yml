@@ -5,9 +5,6 @@ stages:
 - build_image
 - publish_image
 
-variables:
-  npm_config_registry: https://docker.ub.intern.uni-leipzig.de/npm
-
 npm_install:
   stage: build_app
   image: node:8-alpine
