@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="None">
+        
+        
+        <link rel="shortcut icon" href="./img/favicon.ico">
+        <title>dacap</title>
+        <link href="./css/bootstrap-custom.min.css" rel="stylesheet">
+        <link href="./css/font-awesome-4.5.0.css" rel="stylesheet">
+        <link href="./css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="./css/highlight.css">
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+        <![endif]-->
+	
+	<script src="./js/jquery-1.10.2.min.js"></script>
+        <script src="./js/bootstrap-3.0.3.min.js"></script>
+        <script src="./js/highlight.pack.js"></script> 
+    </head>
+
+    <body class="homepage">
+
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+
+        <!-- Collapsed navigation -->
+        <div class="navbar-header">
+            <!-- Expander button -->
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href=".">dacap</a>
+        </div>
+
+        <!-- Expanded navigation -->
+        <div class="navbar-collapse collapse">
+                <!-- Main navigation -->
+                <ul class="nav navbar-nav">
+                    <li class="active">
+                        <a href=".">Deutsch</a>
+                    </li>
+                    <li >
+                        <a href="Readme/">English</a>
+                    </li>
+                </ul>
+
+            <ul class="nav navbar-nav navbar-right">
+                <li>
+                    <a href="#" data-toggle="modal" data-target="#mkdocs_search_modal">
+                        <i class="fa fa-search"></i> Search
+                    </a>
+                </li>
+                    <li class="disabled">
+                        <a rel="next" >
+                            <i class="fa fa-arrow-left"></i> Previous
+                        </a>
+                    </li>
+                    <li >
+                        <a rel="prev" href="Readme/">
+                            Next <i class="fa fa-arrow-right"></i>
+                        </a>
+                    </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+        <div class="container">
+                <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+        <li class="main active"><a href="#dacap">dacap</a></li>
+            <li><a href="#abhangigkeiten">Abhängigkeiten</a></li>
+            <li><a href="#lokale-ausfuhrung">lokale Ausführung</a></li>
+            <li><a href="#als-container">als Container</a></li>
+            <li><a href="#benutzung">Benutzung</a></li>
+            <li><a href="#erweiterte-konfiguration">Erweiterte Konfiguration</a></li>
+    </ul>
+</div></div>
+                <div class="col-md-9" role="main">
+
+<h1 id="dacap">dacap</h1>
+<p><em>Dynamic And Compressing Api Proxy</em> ist ein Dienst, der Ausgaben beliebiger API-Endpunkte zwischenspeichert. Der Dienst wurde erstellt, um API-Requests, welche durch den zur Verfügung stellenden Service nicht performant genug ausgeliefert werden können, zwischenzuspeichern und aus dem Cache auszuliefern zu können. Zusätzlich wird das Response gzip-komprimiert ausgeliefert und die Cache-Daten werden in einem eingestellten Interval im Hintergrund erneuert.</p>
+<h2 id="abhangigkeiten">Abhängigkeiten</h2>
+<ul>
+<li>node &gt;= v8.2.1</li>
+<li>npm &gt;= v5.3.0</li>
+</ul>
+<h2 id="lokale-ausfuhrung">lokale Ausführung</h2>
+<h3 id="installation">Installation</h3>
+<pre><code class="bash">$# npm install -g dacap
+</code></pre>
+
+<h3 id="ausfuhrung">Ausführung</h3>
+<pre><code class="bash">$# dacap
+</code></pre>
+
+<h2 id="als-container">als Container</h2>
+<pre><code class="bash">$# docker run -p 3000:3000 -v /my/hosts/data/folder:/data ubleipzig/dacap
+</code></pre>
+
+<p>Die Konfiguration wird über Umgebungsvariablen durchgeführt, siehe <a href="#erweiterte Konfiguration">erweiterte Konfiguration</a></p>
+<h2 id="benutzung">Benutzung</h2>
+<p>Nach dem Start ist das Admin-Interface unter <code>http://localhost:3000/admin</code> verfügbar</p>
+<p>Als erstes wird ein <em>Cache</em> definiert, in dem die Ergebnisse der Anfragen an einen API-Endpunkt gespeichert werden.</p>
+<p>Unter <em>API-Endpoint</em> wird die URL eingetragen, die zum Service führt (z.B. <code>http://foo.example.com/</code>),Unter <em>Cache-Name</em> wird eine Bezeichnung für den Service eingetragen, (z.B. <code>foo</code>).</p>
+<p>Alle Anfragen, die normalerweise an</p>
+<p><code>http://foo.example.com/?query=foo&amp;offset=0&amp;limit=10</code></p>
+<p>gehen würden, können nun unter</p>
+<p><code>http://localhost:3000/ep/foo/?query=foo&amp;offset=0&amp;limit=10</code></p>
+<p>abgefragt werden.</p>
+<ul>
+<li><em>nach dem Cache-Name ist zwingend ein Slash erforderlich, andernfalls kann der Endpunkt nicht aufgelöst werden.</em></li>
+<li><em>alles, was nach Cache-Name und Slash folgt, wird an den API-Endpunkt angehängt.</em></li>
+</ul>
+<h2 id="erweiterte-konfiguration">Erweiterte Konfiguration</h2>
+<p>Der Dienst lässt sich über Umgebungsvariablen konfigurieren, die beim Start des Dienstes ausgewertet werden:</p>
+<ul>
+<li><code>data_dir</code>: Spezifiziert den Ordner, wo der Cache in regelmäßigen Abständen gespeichert wird.
+Cache und Endpunkte werden im Arbeitspeicher gehalten. Nach dem Neustart des Dienstes wird die Datei ausgelesen
+und vorhandene Endpunkte und Caches in den Arbeitspeicher geladen.
+Standardmäßig ist dieser Ordner der <code>data</code>-Ordner in dem Ordner, aus dem der Prozess gestartet wurde (Im Container der Root-Ordner)
+Es ist sicherzustellen, dass der erstellt werden kann oder für den Dienst schreibbar ist, wenn er bereits existiert.</li>
+<li><code>proxy_path</code>: Spezifiziert den Pfad an dem der Endpunkt nach der Registrierung mit seinem Cache-Namen erreichbar ist.
+Standardmäßig <code>/ep/</code>.</li>
+<li><code>proxy_port</code>: Spezifiziert den Port, an dem der Dienst hört. Standardmäßig <code>3000</code></li>
+<li><code>proxy_url</code>: Spezifiziert die absolute URL des Dienstes mit Protokoll-Schema, Port und Pfad (z.B. <code>https://api.example.com:8443/dacap</code>)
+Standardmäßig <code>http://localhost:${proxy_port}</code>.</li>
+<li><code>cache_ttl</code>: Spezifiziert die time-to-live in Sekunden für ein Cache-Ergebnis. Nach dieser Zeit wird das
+Ergebnis erneuert. Standardmäßig <code>600</code>.</li>
+<li><code>default_check_period</code>: spezifiziert das Intervall in Sekunden, in dem die Ablauf-Frist aller Cache-Ergebnisse geprüft wird.
+Standardmäßig <code>60</code>.</li>
+<li><code>array_value_size</code>: Unbekannte Konfiguration. Defaults to <code>40</code></li>
+<li><code>object_value_size</code>: Unbekannte Konfiguration. Defaults to <code>80</code></li>
+<li><code>autosave_interval</code>: Spezifiziert das Intervall, in dem alle Cache-Ergebnisse und Endpunkt-Konfiguration in eine Datei
+geschrieben werden. Standardmäßig <code>60</code>.</li>
+<li><code>register_name</code>: Spezifiziert den Namen des Registers, in dem alle Cache-Ergebnisse und Endpunkt-Konfigurationen
+gespeichert werden (ist gleichzeitig der Dateiname). Standardmäßig <code>api-cache</code>.</li>
+<li><code>strip_path</code>: Spezifiziert, ob der Pfad der Url entfernt werden soll. Standardmäßig <code>true</code>.</li>
+</ul></div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="http://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>var base_url = '.';</script>
+        <script data-main="./mkdocs/js/search.js" src="./mkdocs/js/require.js"></script>
+        <script src="./js/base.js"></script><div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="Search Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Search</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    From here you can search these documents. Enter
+                    your search terms below.
+                </p>
+                <form role="form">
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Search..." id="mkdocs-search-query">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>
+
+<!--
+MkDocs version : 0.16.3
+Build Date UTC : 2017-11-09 13:06:35
+-->
