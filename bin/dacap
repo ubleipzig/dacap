@@ -3,7 +3,7 @@
 const debug = require('debug')('dacap');
 const pjson = require('../package.json');
 const path = require('path');
-const Server = require('../dist/server').Server;
+const Server = require('../lib/server').Server;
 
 const storagePath = process.env.data_dir || path.resolve(process.cwd(), 'data');
 const proxyPath = process.env.proxy_path || '/ep/';

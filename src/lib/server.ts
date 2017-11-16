@@ -2,16 +2,18 @@ import * as express from 'express';
 import * as compression from 'compression';
 import * as debugFactory from 'debug';
 import * as path from 'path';
-import * as cache from './cache';
 import * as bodyparser from 'body-parser';
 import * as cors from 'cors';
 import * as url from 'url';
 import * as PrettyPrint from 'js-object-pretty-print';
 
+import { Register } from './register';
+import { Middleware } from './middleware';
+
 const debug = debugFactory('dacap:server');
 
 export class Server {
-	private register: cache.Register;
+	private register: Register;
 	private expressApp: express.Application;
 	private corsOptions: cors.CorsOptions;
 	private prePath: string = '';
@@ -42,7 +44,7 @@ export class Server {
 	}
 
 	private initRegister() {
-		this.register = new cache.Register(this.config.storagePath, this.config.registerName);
+		this.register = new Register(this.config.storagePath, this.config.registerName);
 		this.register.restore();
 		this.register.save(this.config.autosaveInterval * 1000);
 	}
@@ -130,9 +132,18 @@ export class Server {
 			}
 		});
 
-		this.expressApp.use(this.prePath + '/admin/', express.static(path.resolve(__dirname, '..', 'public')));
+		if (process.env.NODE_ENV === 'development') {
+			let webpack = require('webpack');
+			let WebpackDevMiddleware = require('webpack-dev-middleware');
+			let webpackConfig = require('../webpack.dev');
+			this.expressApp.use(WebpackDevMiddleware(webpack(webpackConfig), {
+				publicPath: `${this.prePath}/admin/`
+			}));
+		} else {
+			this.expressApp.use(`${this.prePath}/admin/`, express.static(path.resolve(__dirname, '..', 'public')));
+		}
 
-		this.expressApp.use(this.prePath + this.config.proxyPath, cache.Middleware(this.register));
+		this.expressApp.use(this.prePath + this.config.proxyPath, Middleware(this.register));
 	}
 
 	listen(port: number, cb) {

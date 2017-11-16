@@ -1,7 +1,10 @@
-/node_modules
-/dist
-/public
-/data
-/site
+/.nyc_output
+/.dacap-tmp
 /coverage
+/data
+/lib
+/node_modules
+/public
+/site
+/test
 *.tgz

@@ -17,7 +17,7 @@ export class Endpoint {
 	}
 
 	toString(): string {
-		return Url.format(this.serverUrl);
+		return this.serverUrl ? Url.format(this.serverUrl) : '';
 	}
 
 	request(value:EndpointValue): Promise<void>{

@@ -1,0 +1,11 @@
+{
+    "reporter": [
+      "html",
+      "text-summary",
+			"lcovonly"
+    ],
+    "cache": true,
+    "sourceMap": true,
+    "instrument": true
+
+}

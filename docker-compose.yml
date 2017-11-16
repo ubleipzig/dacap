@@ -5,27 +5,15 @@ services:
     volumes:
       - ./:/app:z
       - npm-cache:/home/dev/.npm:z
-      - app-data:/var/lib/app:z
     ports:
       - 3000:3000
       - 127.0.0.1:9229:9229
-    networks:
-      cache-network:
-        aliases:
-          - api.ub.uni-leipzig.de
     environment:
       - npm_config_registry=https://services.ub.uni-leipzig.de/npm
       - NODE_ENV=development
-      - DEBUG=dacap:*
-      - APP_DATA_DIR=/var/lib/app
-      - APP_TMP_DIR=/tmp
       - DEBUG=*
     command:
       - npm run inspect-watch
-    hostname: api.ub.uni-leipzig.de
 
 volumes:
   npm-cache: {}
-  app-data: {}
-networks:
-  cache-network: {}
