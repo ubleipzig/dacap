@@ -1,10 +1,14 @@
 {
   "name": "dacap",
+  "scope": "@bdd_dev",
   "version": "1.0.10",
   "description": "proxies,compresses and caches api-requests",
   "main": "bin/dacap",
   "bin": {
     "dacap": "./bin/dacap"
+  },
+  "publishConfig": {
+    "registry": "https://services.ub.uni-leipzig.de/nexus/repository/npm-ubl/"
   },
   "directories": {
     "test": "test"
@@ -18,7 +22,7 @@
     "test-inspect": "mocha --inspect-brk=0.0.0.0:9229",
     "test-watch": "tsc-watch --sourceMap --onSuccess 'nyc mocha'",
     "ci": "nyc mocha --timeout=10000",
-    "build": "rm -rf lib test public && tsc --declaration && webpack --config webpack.prod.js",
+    "build": "rm -rf lib test public && tsc && webpack --config webpack.prod.js",
     "nyc": "nyc"
   },
   "author": "Ulf Seltmann <ulf.seltmann@uni-leipzig.de>",

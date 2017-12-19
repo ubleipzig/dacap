@@ -1,7 +1,7 @@
 version: '2'
 services:
   node:
-    image: docker.io/smoebody/dev-nodejs:latest
+    image: services.ub.uni-leipzig.de:10443/smoebody/dev-nodejs:latest
     volumes:
       - ./:/app:z
       - npm-cache:/home/dev/.npm:z
@@ -9,11 +9,10 @@ services:
       - 3000:3000
       - 127.0.0.1:9229:9229
     environment:
-      - npm_config_registry=https://services.ub.uni-leipzig.de/npm
+      - npm_config_registry=https://services.ub.uni-leipzig.de/nexus/repository/npm/
       - NODE_ENV=development
       - DEBUG=*
     command:
       - npm run inspect-watch
-
 volumes:
   npm-cache: {}
