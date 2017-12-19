@@ -10,33 +10,36 @@ variables:
 
 npm_install:
   stage: build_app
-  image: node:8-alpine
+  image:
+    name: node:8-alpine
+    entrypoint: ["/bin/su", "node", "-c"]
   script:
     - test -d .npm && mv .npm ${HOME}
     - npm run build
-    - npm run ci
     - mv ${HOME}/.npm .
   cache:
     key: "${CI_PROJECT_ID}"
     paths:
     - .npm
-    - public
+    - lib
     - node_modules
-    - dist
     - public
+    - test
   tags:
     - docker
 
 npm_ci:
   stage: test_app
-  image: node:8-alpine
+  image:
+    name: node:8-alpine
+    entrypoint: ["/bin/su", "node", "-c"]
   script:
   - npm run ci
   cache:
     key: "${CI_PROJECT_ID}"
     paths:
     - .npm
-    - dist
+    - lib
     - public
   tags:
     - docker
@@ -45,7 +48,9 @@ npm_publish:
   stage: publish_app
   only:
   - master
-  image: node:8-alpine
+  image:
+    name: node:8-alpine
+    entrypoint: ["/bin/su", "node", "-c"]
   script:
   - 'echo "//services.ub.uni-leipzig.de/nexus/repository/npm-ubl/:_authToken=${NPM_TOKEN}" > ~/.npmrc'
   - npm publish
