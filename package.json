@@ -22,7 +22,7 @@
     "test-inspect": "mocha --inspect-brk=0.0.0.0:9229",
     "test-watch": "tsc-watch --sourceMap --onSuccess 'nyc mocha'",
     "ci": "nyc mocha --timeout=10000",
-    "build": "rm -rf lib test public && tsc && webpack --config webpack.prod.js",
+    "build": "rm -rf lib test public && npm install && tsc && webpack --config webpack.prod.js",
     "nyc": "nyc"
   },
   "author": "Ulf Seltmann <ulf.seltmann@uni-leipzig.de>",
