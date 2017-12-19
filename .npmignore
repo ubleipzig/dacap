@@ -18,3 +18,4 @@
 /Dockerfile
 /*.tgz
 /.gitlab-ci.yml
+/.npm

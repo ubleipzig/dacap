@@ -100,24 +100,164 @@ describe('Cache', () => {
 	});
 
 	describe('get', () => {
-		let cache;
-		beforeEach(() => {
-			nock('https://api.example.com').get('/').reply(200, {
-				"validKey": "validData"
+		describe('root element', () => {
+			let cache;
+			beforeEach(() => {
+				nock('https://api.example.com').get('/').reply(200, {
+					"validKey": "validData"
+				});
+
+				cache = new Cache(new Endpoint('https://api.example.com'), new NodeCache);
 			});
 
-			cache = new Cache(new Endpoint('https://api.example.com'), new NodeCache);
+			it('should return the json', (done) => {
+				cache.get('newHash', '').then((value) => {
+					should(value).eql({
+						uriPath: '',
+						contentType: 'application/json',
+						data: JSON.stringify({ "validKey": "validData" }),
+					});
+					done();
+				}).catch(done);
+			});
+			it('should return 404', (done) => {
+				cache.get('newHash', 'foo').then((value) => {
+					should(value).eql({
+						uriPath: 'foo',
+						contentType: '',
+						data: '',
+					});
+					done();
+				}).catch(done);
+			});
+		});
+		describe('root element with params', () => {
+			let cache;
+			beforeEach(() => {
+				nock('https://api.example.com').get('/?foo=bar').reply(200, {
+					"validKey": "validData"
+				});
+
+				cache = new Cache(new Endpoint('https://api.example.com'), new NodeCache);
+			});
+
+			it('should return the json', (done) => {
+				cache.get('newHash', '?foo=bar').then((value) => {
+					should(value).eql({
+						uriPath: '?foo=bar',
+						contentType: 'application/json',
+						data: JSON.stringify({ "validKey": "validData" }),
+					});
+					done();
+				}).catch(done);
+			});
+			it('should return 404', (done) => {
+				cache.get('newHash', 'foo').then((value) => {
+					should(value).eql({
+						uriPath: 'foo',
+						contentType: '',
+						data: '',
+					});
+					done();
+				}).catch(done);
+			});
 		});
 
-		it('should return the json',(done) => {
-			cache.get('newHash', '/').then((value) => {
-				should(value).eql({
-					uriPath: '/',
-					contentType: '',
-					data:'validData'
+		describe('relative path', () => {
+			let cache;
+			beforeEach(() => {
+				nock('https://api.example.com').get('/foo').reply(200, {
+					"validKey": "validData"
 				});
-				done();
-			}).catch(done);
+
+				cache = new Cache(new Endpoint('https://api.example.com/foo'), new NodeCache);
+			});
+
+			it('should return the json', (done) => {
+				cache.get('newHash', '').then((value) => {
+					should(value).eql({
+						uriPath: '',
+						contentType: 'application/json',
+						data: JSON.stringify({ "validKey": "validData" }),
+					});
+					done();
+				}).catch(done);
+			});
+			it('should return 404', (done) => {
+				cache.get('newHash', '?foo=bar').then((value) => {
+					should(value).eql({
+						uriPath: '?foo=bar',
+						contentType: '',
+						data: '',
+					});
+					done();
+				}).catch(done);
+			});
 		});
+
+		describe('relative path with params', () => {
+			let cache;
+			beforeEach(() => {
+				nock('https://api.example.com').get('/foo?bar=baz').reply(200, {
+					"validKey": "validData"
+				});
+
+				cache = new Cache(new Endpoint('https://api.example.com/foo'), new NodeCache);
+			});
+
+			it('should return the json', (done) => {
+				cache.get('newHash', '?bar=baz').then((value) => {
+					should(value).eql({
+						uriPath: '?bar=baz',
+						contentType: 'application/json',
+						data: JSON.stringify({ "validKey": "validData" }),
+					});
+					done();
+				}).catch(done);
+			});
+			it('should return 404', (done) => {
+				cache.get('newHash', 'bar/baz').then((value) => {
+					should(value).eql({
+						uriPath: 'bar/baz',
+						contentType: '',
+						data: '',
+					});
+					done();
+				}).catch(done);
+			});
+		});
+
+		describe('relative path with subpath', () => {
+			let cache;
+			beforeEach(() => {
+				nock('https://api.example.com').get('/foo/bar/baz').reply(200, {
+					"validKey": "validData"
+				});
+
+				cache = new Cache(new Endpoint('https://api.example.com/foo'), new NodeCache);
+			});
+
+			it('should return the json', (done) => {
+				cache.get('newHash', '/bar/baz').then((value) => {
+					should(value).eql({
+						uriPath: '/bar/baz',
+						contentType: 'application/json',
+						data: JSON.stringify({ "validKey": "validData" }),
+					});
+					done();
+				}).catch(done);
+			});
+			it('should return 404', (done) => {
+				cache.get('newHash', '/bar=baz').then((value) => {
+					should(value).eql({
+						uriPath: '/bar=baz',
+						contentType: '',
+						data: '',
+					});
+					done();
+				}).catch(done);
+			});
+		});
+
 	});
 });

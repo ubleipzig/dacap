@@ -6,17 +6,21 @@ stages:
 - publish_image
 
 variables:
-  npm_config_registry: https://services.ub.uni-leipzig.de/npm
+  npm_config_registry: https://services.ub.uni-leipzig.de/repository/npm/
 
 npm_install:
   stage: build_app
   image: node:8-alpine
   script:
-  - npm install
-  - npm run build
+    - test -d .npm && mv .npm ${HOME}
+    - npm run build
+    - npm run ci
+    - mv ${HOME}/.npm .
   cache:
-    key: "${CI_COMMIT_SHA}"
+    key: "${CI_PROJECT_ID}"
     paths:
+    - .npm
+    - public
     - node_modules
     - dist
     - public
@@ -29,24 +33,26 @@ npm_ci:
   script:
   - npm run ci
   cache:
-    key: "${CI_COMMIT_SHA}"
+    key: "${CI_PROJECT_ID}"
     paths:
+    - .npm
     - dist
     - public
   tags:
     - docker
 
-npm_pack:
+npm_publish:
   stage: publish_app
   only:
   - master
   image: node:8-alpine
   script:
-  - npm pack
+  - 'echo "//services.ub.uni-leipzig.de/nexus/repository/npm-ubl/:_authToken=${NPM_TOKEN}" > ~/.npmrc'
+  - npm publish
   cache:
-    key: "${CI_COMMIT_SHA}"
+    key: "${CI_PROJECT_ID}"
     paths:
-    - "*.tgz"
+    - .npm
   tags:
     - docker
 
@@ -59,13 +65,13 @@ docker_build:
   - docker:dind
   script:
   - docker login --username ${DOCKER_USER} --password ${DOCKER_PASSWORD}
-  - docker build --no-cache --pull -t bdddev/dacap:latest .
-  - docker tag bdddev/dacap:latest bdddev/dacap:${CI_PIPELINE_ID}
-  - docker push bdddev/dacap:${CI_PIPELINE_ID}
-  - docker push bdddev/dacap:latest
+  - docker build --no-cache --pull -t services.ub.uni-leipzig.de:11443/bdd_dev/dacap:latest .
+  - docker tag services.ub.uni-leipzig.de:11443/bdd_dev/dacap:latest services.ub.uni-leipzig.de:11443/bdd_dev/dacap:${CI_PIPELINE_ID}
+  - docker push services.ub.uni-leipzig.de:11443/bdd_dev/dacap:${CI_PIPELINE_ID}
+  - docker push services.ub.uni-leipzig.de:11443/bdd_dev/dacap:latest
   cache:
-    key: "${CI_COMMIT_SHA}"
+    key: "${CI_PROJECT_ID}"
     paths:
-    - "*.tgz"
+    - .npm
   tags:
     - docker
