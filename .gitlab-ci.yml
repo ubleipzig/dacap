@@ -69,7 +69,7 @@ docker_build:
   services:
   - docker:dind
   script:
-  - docker login --username '${DOCKER_USER}' --password '${DOCKER_PASSWORD}' https://services.ub.uni-leipzig.de:11443/
+  - docker login --username ${DOCKER_USER} --password ${DOCKER_PASSWORD} https://services.ub.uni-leipzig.de:11443/
   - docker build --no-cache --pull -t services.ub.uni-leipzig.de:11443/bdd_dev/dacap:latest .
   - docker tag services.ub.uni-leipzig.de:11443/bdd_dev/dacap:latest services.ub.uni-leipzig.de:11443/bdd_dev/dacap:${CI_PIPELINE_ID}
   - docker push services.ub.uni-leipzig.de:11443/bdd_dev/dacap:${CI_PIPELINE_ID}
