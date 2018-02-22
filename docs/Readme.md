@@ -69,3 +69,7 @@ The service can be configured by environment variables. The following are availa
 * `autosave_interval`: Specifies the interval the cache is stored to harddisk. Defaults to `60`.
 * `register_name`: Specifies the name of the register where the cache is stored. Defaults to `api-cache`.
 * `strip_path`: Specifies whether the path should be stripped when processing requests. Defaults to `true`.
+* `user`: Specifies the user for simple basic authentication. Defaults to `undefined`.
+* `password`: Specifies the password for simple basic authentication. Defaults to `undefined`.
+
+**Only when both `user` and `password` are specified basic-auth is enabled**

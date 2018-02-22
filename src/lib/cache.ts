@@ -34,9 +34,9 @@ export interface CacheInfo {
 
 
 export class Cache {
-	constructor(private endpoint?: Endpoint, private realCache?: NodeCache) {
+	constructor(private endpoint?: Endpoint, private nodeCache?: NodeCache) {
 		if (endpoint) this.setEndpoint(endpoint);
-		if (realCache) this.setCache(realCache);
+		if (nodeCache) this.setCache(nodeCache);
 	}
 
 	setEndpoint(endpoint: Endpoint): this {
@@ -48,9 +48,9 @@ export class Cache {
 		return this.endpoint;
 	}
 
-	setCache(realCache: NodeCache): this {
-		this.realCache = realCache;
-		this.realCache.on('expired', (key, value) => {
+	setCache(nodeCache: NodeCache): this {
+		this.nodeCache = nodeCache;
+		this.nodeCache.on('expired', (key, value) => {
 			debug(`hash "${key}" has expired`);
 			this.refresh(key, value);
 		})
@@ -58,19 +58,19 @@ export class Cache {
 	}
 
 	getCache(): NodeCache {
-		return this.realCache;
+		return this.nodeCache;
 	}
 
 	flush() {
-		return this.realCache.flushAll();
+		return this.nodeCache.flushAll();
 	}
 
 	del(hash) {
-		return this.realCache.del(hash);
+		return this.nodeCache.del(hash);
 	}
 
 	async get(hash: string, path: string): Promise<EndpointValue> {
-		let value: EndpointValue | undefined = this.realCache.get(hash);
+		let value: EndpointValue | undefined = this.nodeCache.get(hash);
 		if (value == undefined) {
 			debug(`no cache hit. fetching ${path}`);
 			value = {
@@ -80,12 +80,12 @@ export class Cache {
 			};
 			try {
 				await this.endpoint.request(value);
-				this.realCache.set(hash, value);
+				this.nodeCache.set(hash, value);
 			} catch (err) {
 				console.error(err);
 			}
 		} else {
-			debug(`cache hit. ttl is ${this.realCache.getTtl(hash)}`);
+			debug(`cache hit. ttl is ${this.nodeCache.getTtl(hash)}`);
 
 		}
 
@@ -101,41 +101,42 @@ export class Cache {
 		await this.endpoint.request(newValue);
 		value.data = newValue.data;
 		value.contentType = newValue.contentType;
-		this.realCache.set(key, value);
+		this.nodeCache.set(key, value);
 		debug(`successfully refreshed "${key}"`);
 	}
 
 	keys(): string[] {
-		return this.realCache.keys();
+		return this.nodeCache.keys();
 	}
 
 	getDetails(): CacheDetails[];
 	getDetails(hash: string): CacheDetails;
 	getDetails(hash?): any {
-		return (hash) ? this._getDetails(hash) : this.realCache.keys().map(this._getDetails.bind(this));
+		return (hash) ? this._getDetails(hash) : this.nodeCache.keys().map(this._getDetails.bind(this));
 	}
 
 	private _getDetails(hash: string): CacheDetails {
+		const nodeCache = this.nodeCache.get<EndpointValue>(hash);
 		return {
 			hash: hash,
-			ttl: this.realCache.getTtl(hash),
-			uriPath: this.realCache.get<EndpointValue>(hash).uriPath,
-			contentType: this.realCache.get<EndpointValue>(hash).contentType,
-			size: this.realCache.get<EndpointValue>(hash).data.length
+			ttl: this.nodeCache.getTtl(hash),
+			uriPath: nodeCache.uriPath,
+			contentType: nodeCache.contentType,
+			size: nodeCache.data.length
 		};
 	}
 
 	toObject(): CacheObject {
 		const data = {
 			endPoint: this.endpoint.toString(),
-			cacheOptions: this.realCache.options,
+			cacheOptions: this.nodeCache.options,
 			cache: []
 		}
 
-		this.realCache.keys().map((hash) => {
+		this.nodeCache.keys().map((hash) => {
 			data.cache.push({
 				hash: hash,
-				value: this.realCache.get<EndpointValue>(hash)
+				value: this.nodeCache.get<EndpointValue>(hash)
 			});
 		});
 
@@ -144,13 +145,13 @@ export class Cache {
 
 	fromObject(data) {
 		const endpoint = new Endpoint(data.endPoint);
-		const realCache = new NodeCache(data.cacheOptions);
+		const nodeCache = new NodeCache(data.cacheOptions);
 		this.setEndpoint(endpoint);
 
 		data.cache.map((item) => {
-			realCache.set(item.hash, item.value);
+			nodeCache.set(item.hash, item.value);
 		});
 
-		this.setCache(realCache);
+		this.setCache(nodeCache);
 	}
 }

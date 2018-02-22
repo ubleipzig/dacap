@@ -1,4 +1,4 @@
-import { Component, OnInit, enableProdMode } from '@angular/core';
+import { Component, OnInit, enableProdMode, Output, EventEmitter } from '@angular/core';
 import { Cache, Config } from './cache';
 import { CacheService } from './cache.service';
 
@@ -25,6 +25,15 @@ export class AppComponent implements OnInit {
       this.config = result;
     })
 
+  }
+
+  logout() {
+    this.cacheService.logout().then(() => {
+      throw new Error('wrong response');
+    }).catch(err => {
+      if (err.status !== 401) throw err;
+      window.location.href = err.error;
+    })
   }
 
   addCache(cache: Cache) {

@@ -6,11 +6,33 @@ import * as bodyparser from 'body-parser';
 import * as cors from 'cors';
 import * as url from 'url';
 import * as PrettyPrint from 'js-object-pretty-print';
+import * as BasicAuth from 'express-basic-auth';
 
 import { Register } from './register';
 import { Middleware } from './middleware';
 
 const debug = debugFactory('dacap:server');
+
+interface publicConfig {
+	proxyPath: string
+	proxyUrl: string
+	basicAuth: boolean
+}
+
+interface privateConfig {
+		storagePath: string
+		proxyPath: string
+		proxyUrl: string
+		defaultTtl: number
+		defaultCheckPeriod: number
+		defaultArrayValueSize: number
+		defaultObjectValueSize: number
+		autosaveInterval: number
+		registerName: string
+		stripPath: boolean
+		user: string
+		password: string
+}
 
 export class Server {
 	private register: Register;
@@ -18,18 +40,8 @@ export class Server {
 	private corsOptions: cors.CorsOptions;
 	private prePath: string = '';
 
-	constructor(private config: {
-		storagePath: string,
-		proxyPath: string,
-		proxyUrl: string,
-		defaultTtl: number,
-		defaultCheckPeriod: number,
-		defaultArrayValueSize: number,
-		defaultObjectValueSize: number,
-		autosaveInterval: number,
-		registerName: string,
-		stripPath: boolean
-	}) {
+
+	constructor(private config: privateConfig) {
 
 		debug(`starting up with this config: ` + PrettyPrint.pretty(this.config));
 
@@ -61,6 +73,17 @@ export class Server {
 
 		this.expressApp.use(compression());
 		this.expressApp.use(bodyparser.json());
+
+		if (this.config.user && this.config.password) {
+			const self = this;
+			this.expressApp.use((req, res, next) => {
+				if (!req.path.match(new RegExp(`^${this.prePath}/admin/`))) return next();
+				const authOptions = { users: {}, challenge: true };
+				authOptions.users[this.config.user] = this.config.password;
+				debug('restricted area');
+				return BasicAuth(authOptions)(req, res, next);
+			});
+		}
 	}
 
 	private initRoutes() {
@@ -68,8 +91,20 @@ export class Server {
 			res.send();
 		});
 
+		this.expressApp.get(this.prePath + '/admin/api/logout', (req, res, next) => {
+			res.statusCode = 401
+			res.end(this.prePath + '/admin/');
+		});
+
+
 		this.expressApp.get(this.prePath + '/admin/api/config', (req, res, next) => {
-			return res.json(this.config);
+			const publicConfig: publicConfig = {
+				proxyPath: this.config.proxyPath,
+				proxyUrl: this.config.proxyUrl,
+				basicAuth: !!(this.config.user && this.config.password)
+			};
+
+			res.send(publicConfig);
 		});
 
 		this.expressApp.post(this.prePath + '/admin/api/add/cache/:name', (req, res, next) => {

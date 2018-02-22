@@ -22,8 +22,8 @@ describe('Cache', () => {
 	describe('instantiate with endpoint and node-cache', () => {
 		it('should be an instance of Cache', () => {
 			let endpoint = new Endpoint();
-			let realCache = new NodeCache();
-			let cache = new Cache(endpoint, realCache);
+			let nodeCache = new NodeCache();
+			let cache = new Cache(endpoint, nodeCache);
 			should(cache).be.instanceof(Cache);
 		});
 	});
@@ -70,32 +70,32 @@ describe('Cache', () => {
 	});
 
 	describe('flush', () => {
-		let cache, realCache = new NodeCache();
+		let cache, nodeCache = new NodeCache();
 		beforeEach(() => {
-			cache = new Cache(null, realCache);
-			realCache.set('validHash', 'validData');
-			realCache.set('anotherValidHash', 'anotherValidData');
+			cache = new Cache(null, nodeCache);
+			nodeCache.set('validHash', 'validData');
+			nodeCache.set('anotherValidHash', 'anotherValidData');
 		});
 
 		it('should remove all values', () => {
 			cache.flush();
-			should(realCache.get('validHash')).be.undefined;
-			should(realCache.get('anotherValidHash')).be.undefined;
+			should(nodeCache.get('validHash')).be.undefined;
+			should(nodeCache.get('anotherValidHash')).be.undefined;
 		});
 	});
 
 	describe('delete', () => {
-		let cache, realCache = new NodeCache();
+		let cache, nodeCache = new NodeCache();
 		beforeEach(() => {
-			cache = new Cache(null, realCache);
-			realCache.set('validHash', 'validData');
-			realCache.set('anotherValidHash', 'anotherValidData');
+			cache = new Cache(null, nodeCache);
+			nodeCache.set('validHash', 'validData');
+			nodeCache.set('anotherValidHash', 'anotherValidData');
 		});
 
 		it('should remove onnly one value', () => {
 			cache.del('validHash');
-			should(realCache.get('validHash')).be.undefined;
-			should(realCache.get('anotherValidHash')).eql('anotherValidData');
+			should(nodeCache.get('validHash')).be.undefined;
+			should(nodeCache.get('anotherValidHash')).eql('anotherValidData');
 		});
 	});
 

@@ -3,7 +3,7 @@ var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var commonConfig = require('./webpack.common.js');
 
 module.exports = webpackMerge(commonConfig, {
-	devtool: 'source-map',
+	devtool: 'cheap-module-eval-source-map',
 
 	output: {
 		chunkFilename: '[id].chunk.js'

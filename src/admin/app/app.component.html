@@ -2,6 +2,9 @@
 	<div class="container">
 		<h1>Admin Interface</h1>
 		<p>shows all cache caches available.</p>
+		<div class="btn-group pull-right">
+			<button *ngIf="config.basicAuth" type="button" class="btn btn-danger btn-l" (click)="logout()">Logout</button>
+		</div>
 	</div>
 </div>
 <add-cache [proxyUrl]="config.proxyUrl + config.proxyPath" (onAdd)="addCache($event)"></add-cache>
