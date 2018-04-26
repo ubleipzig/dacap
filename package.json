@@ -1,7 +1,7 @@
 {
   "name": "@ubleipzig/dacap",
   "scope": "@bdd_dev",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "proxies,compresses and caches api-requests",
   "main": "bin/dacap",
   "bin": {
