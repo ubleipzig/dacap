@@ -41,8 +41,6 @@ npm_ci:
     - public
   tags:
   - docker
-  except:
-  - tags
 
 npm_publish:
   stage: publish
@@ -61,7 +59,7 @@ npm_publish:
   except:
   - branches
   only:
-  - ^/release\/*/
+  - /^release\/*/
 
 docker_build:
   stage: image
@@ -89,7 +87,7 @@ docker_build:
   except:
   - branches
   only:
-  - ^/release\/*/
+  - /^release\/*/
 
 gh_pages:
   stage: docs
