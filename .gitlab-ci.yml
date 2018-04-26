@@ -99,7 +99,7 @@ gh_pages:
   only:
   - /^master/
   script: |
-    git remote set-url origin https://${GITLAB_USER}:${GITLAB_TOKEN}@git.sc.uni-leipzig.de/ubl/bdd_dev/autoconfig.git
+    git remote set-url origin https://${GITLAB_USER}:${GITLAB_TOKEN}@git.sc.uni-leipzig.de/ubl/bdd_dev/dacap.git
     mkdocs gh-deploy
   tags:
   - docker
@@ -116,7 +116,7 @@ github_mirror:
     cd /tmp
     git clone --mirror ${CI_REPOSITORY_URL} project
     cd project
-    git remote add github https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/ubleipzig/autoconfig.git
+    git remote add github https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/ubleipzig/dacap.git
     git push --mirror github
   tags:
   - docker
