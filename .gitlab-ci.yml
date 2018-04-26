@@ -101,6 +101,10 @@ gh_pages:
     mkdocs gh-deploy
   tags:
   - docker
+  except:
+  - branches
+  only:
+  - /^release\/*/
 
 github_mirror:
   stage: mirror
