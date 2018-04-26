@@ -96,7 +96,7 @@
 </ul>
 <h2 id="lokale-ausfuhrung">lokale Ausführung</h2>
 <h3 id="installation">Installation</h3>
-<pre><code class="bash">$# npm install -g dacap
+<pre><code class="bash">$# npm install -g @ubleipzig/dacap
 </code></pre>
 
 <h3 id="ausfuhrung">Ausführung</h3>
@@ -124,28 +124,21 @@
 <h2 id="erweiterte-konfiguration">Erweiterte Konfiguration</h2>
 <p>Der Dienst lässt sich über Umgebungsvariablen konfigurieren, die beim Start des Dienstes ausgewertet werden:</p>
 <ul>
-<li><code>data_dir</code>: Spezifiziert den Ordner, wo der Cache in regelmäßigen Abständen gespeichert wird.
-Cache und Endpunkte werden im Arbeitspeicher gehalten. Nach dem Neustart des Dienstes wird die Datei ausgelesen
-und vorhandene Endpunkte und Caches in den Arbeitspeicher geladen.
-Standardmäßig ist dieser Ordner der <code>data</code>-Ordner in dem Ordner, aus dem der Prozess gestartet wurde (Im Container der Root-Ordner)
-Es ist sicherzustellen, dass der erstellt werden kann oder für den Dienst schreibbar ist, wenn er bereits existiert.</li>
-<li><code>proxy_path</code>: Spezifiziert den Pfad an dem der Endpunkt nach der Registrierung mit seinem Cache-Namen erreichbar ist.
-Standardmäßig <code>/ep/</code>.</li>
+<li><code>data_dir</code>: Spezifiziert den Ordner, wo der Cache in regelmäßigen Abständen gespeichert wird. Cache und Endpunkte werden im Arbeitspeicher gehalten. Nach dem Neustart des Dienstes wird die Datei ausgelesen und vorhandene Endpunkte und Caches in den Arbeitspeicher geladen. Standardmäßig ist dieser Ordner der <code>data</code>-Ordner in dem Ordner, aus dem der Prozess gestartet wurde (Im Container der Root-Ordner). Es ist sicherzustellen, dass der erstellt werden kann oder für den Dienst schreibbar ist, wenn er bereits existiert.</li>
+<li><code>proxy_path</code>: Spezifiziert den Pfad an dem der Endpunkt nach der Registrierung mit seinem Cache-Namen erreichbar ist. Standardmäßig <code>/ep/</code>.</li>
 <li><code>proxy_port</code>: Spezifiziert den Port, an dem der Dienst hört. Standardmäßig <code>3000</code></li>
-<li><code>proxy_url</code>: Spezifiziert die absolute URL des Dienstes mit Protokoll-Schema, Port und Pfad (z.B. <code>https://api.example.com:8443/dacap</code>)
-Standardmäßig <code>http://localhost:${proxy_port}</code>.</li>
-<li><code>cache_ttl</code>: Spezifiziert die time-to-live in Sekunden für ein Cache-Ergebnis. Nach dieser Zeit wird das
-Ergebnis erneuert. Standardmäßig <code>600</code>.</li>
-<li><code>default_check_period</code>: spezifiziert das Intervall in Sekunden, in dem die Ablauf-Frist aller Cache-Ergebnisse geprüft wird.
-Standardmäßig <code>60</code>.</li>
+<li><code>proxy_url</code>: Spezifiziert die absolute URL des Dienstes mit Protokoll-Schema, Port und Pfad (z.B. <code>https://api.example.com:8443/dacap</code>). Standardmäßig <code>http://localhost:${proxy_port}</code>.</li>
+<li><code>cache_ttl</code>: Spezifiziert die time-to-live in Sekunden für ein Cache-Ergebnis. Nach dieser Zeit wird das Ergebnis erneuert. Standardmäßig <code>600</code>.</li>
+<li><code>default_check_period</code>: spezifiziert das Intervall in Sekunden, in dem die Ablauf-Frist aller Cache-Ergebnisse geprüft wird. Standardmäßig <code>60</code>.</li>
 <li><code>array_value_size</code>: Unbekannte Konfiguration. Defaults to <code>40</code></li>
 <li><code>object_value_size</code>: Unbekannte Konfiguration. Defaults to <code>80</code></li>
-<li><code>autosave_interval</code>: Spezifiziert das Intervall, in dem alle Cache-Ergebnisse und Endpunkt-Konfiguration in eine Datei
-geschrieben werden. Standardmäßig <code>60</code>.</li>
-<li><code>register_name</code>: Spezifiziert den Namen des Registers, in dem alle Cache-Ergebnisse und Endpunkt-Konfigurationen
-gespeichert werden (ist gleichzeitig der Dateiname). Standardmäßig <code>api-cache</code>.</li>
+<li><code>autosave_interval</code>: Spezifiziert das Intervall, in dem alle Cache-Ergebnisse und Endpunkt-Konfiguration in eine Datei geschrieben werden. Standardmäßig <code>60</code>.</li>
+<li><code>register_name</code>: Spezifiziert den Namen des Registers, in dem alle Cache-Ergebnisse und Endpunkt-Konfigurationen gespeichert werden (ist gleichzeitig der Dateiname). Standardmäßig <code>api-cache</code>.</li>
 <li><code>strip_path</code>: Spezifiziert, ob der Pfad der Url entfernt werden soll. Standardmäßig <code>true</code>.</li>
-</ul></div>
+<li><code>user</code>: Spezifiziert den Benutzer für die Basic Authentication. Standardmäßig <code>undefined</code>.</li>
+<li><code>password</code>: Spezifiziert das Passwort für die Basic Authentication. Standardmäßig <code>undefined</code>.</li>
+</ul>
+<p><strong>Nur wenn <code>user</code> und <code>password</code> angegeben sind, ist basic-auth aktiviert</strong></p></div>
         </div>
 
         <footer class="col-md-12">
@@ -227,5 +220,5 @@ gespeichert werden (ist gleichzeitig der Dateiname). Standardmäßig <code>api-c
 
 <!--
 MkDocs version : 0.17.3
-Build Date UTC : 2018-04-26 11:33:31
+Build Date UTC : 2018-04-26 12:08:51
 -->

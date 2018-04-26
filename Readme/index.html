@@ -98,7 +98,7 @@
 </ul>
 <h2 id="local-execution">local Execution</h2>
 <h3 id="installation">Installation</h3>
-<pre><code class="bash">$# npm install -g dacap
+<pre><code class="bash">$# npm install -g @ubleipzig/dacap
 </code></pre>
 
 <h3 id="execution">Execution</h3>
@@ -125,14 +125,10 @@
 <h2 id="advanced-configuration">Advanced Configuration</h2>
 <p>The service can be configured by environment variables. The following are available:</p>
 <ul>
-<li><code>data_dir</code>: Specifies the folder where the cache is stored in intervals. This is only used to
- make it more easy to restart the service without adding all Endpoints again. After restart the
- service reads the saved cache-file and keeps it in memory.
- By default this points to the <code>data</code>-folder where the process was invoked. Make sure it can be created if not existing and written if already existing.</li>
+<li><code>data_dir</code>: Specifies the folder where the cache is stored in intervals. This is only used to make it more easy to restart the service without adding all Endpoints again. After restart the service reads the saved cache-file and keeps it in memory. By default this points to the <code>data</code>-folder where the process was invoked. Make sure it can be created if not existing and written if already existing.</li>
 <li><code>proxy_path</code>: Specifies the path where the Endpoints will be accessable after registering. By default this is <code>/ep/</code>.</li>
 <li><code>proxy_port</code>: Specifies the port number where the service is listening. Defaults to <code>3000</code>.</li>
-<li><code>proxy_url</code>: Specifies the absolute url of the service with protocol and port if differing from the defaults
-(e.g. <code>https://api.example.com:8443/dacap</code>). Defaults to <code>http://localhost:${proxy_port}</code>.</li>
+<li><code>proxy_url</code>: Specifies the absolute url of the service with protocol and port if differing from the defaults (e.g. <code>https://api.example.com:8443/dacap</code>). Defaults to <code>http://localhost:${proxy_port}</code>.</li>
 <li><code>cache_ttl</code>: Specifies the time-to-live in seconds of a cached request. after this time the cache will be refreshed. Defaults to <code>600</code></li>
 <li><code>default_check_period</code>: Specifies the interval in seconds the cache is checked for expiry. Defaults to <code>60</code></li>
 <li><code>array_value_size</code>: Unkown configuration. Defaults to <code>40</code></li>
