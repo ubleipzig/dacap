@@ -1,15 +1,13 @@
 stages:
-- build_app
-- test_app
-- publish_app
-- build_image
-- publish_image
-
-variables:
-  npm_config_registry: https://services.ub.uni-leipzig.de/nexus/repository/npm/
+- build
+- test
+- publish
+- image
+- docs
+- mirror
 
 npm_install:
-  stage: build_app
+  stage: build
   image:
     name: node:8-alpine
     entrypoint: ["/bin/su", "node", "-c"]
@@ -29,7 +27,7 @@ npm_install:
     - docker
 
 npm_ci:
-  stage: test_app
+  stage: test
   image:
     name: node:8-alpine
     entrypoint: ["/bin/su", "node", "-c"]
@@ -42,17 +40,17 @@ npm_ci:
     - lib
     - public
   tags:
-    - docker
+  - docker
+  except:
+  - tags
 
 npm_publish:
-  stage: publish_app
-  only:
-  - master
+  stage: publish
   image:
     name: node:8-alpine
     entrypoint: ["/bin/su", "node", "-c"]
   script:
-  - 'echo "//services.ub.uni-leipzig.de/nexus/repository/npm-ubl/:_authToken=${NPM_TOKEN}" > ~/.npmrc'
+  - 'echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc'
   - npm publish
   cache:
     key: "${CI_PROJECT_ID}"
@@ -60,24 +58,65 @@ npm_publish:
     - .npm
   tags:
     - docker
+  except:
+  - branches
+  only:
+  - ^/release\/*/
 
 docker_build:
-  stage: build_image
-  only:
-  - master
+  stage: image
   image: docker:latest
   services:
   - docker:dind
-  script:
-  - docker login --username ${DOCKER_USER} --password ${DOCKER_PASSWORD} https://services.ub.uni-leipzig.de:10443/
-  - docker login --username ${DOCKER_USER} --password ${DOCKER_PASSWORD} https://services.ub.uni-leipzig.de:11443/
-  - docker build --no-cache --pull -t services.ub.uni-leipzig.de:11443/bdd_dev/dacap:latest .
-  - docker tag services.ub.uni-leipzig.de:11443/bdd_dev/dacap:latest services.ub.uni-leipzig.de:11443/bdd_dev/dacap:${CI_PIPELINE_ID}
-  - docker push services.ub.uni-leipzig.de:11443/bdd_dev/dacap:${CI_PIPELINE_ID}
-  - docker push services.ub.uni-leipzig.de:11443/bdd_dev/dacap:latest
+  script: |
+    mkdir -p ~/.docker && echo "$DOCKER_AUTH_CONFIG" >~/.docker/config.json
+    export version=`expr ${CI_COMMIT_TAG} ':' '/release/\(.\+\)'`
+    export major_version=`expr ${version} ':' '\([^.]\+\)'`
+    export minor_version=`expr ${version} ':' '[^.]\+\.\([^.]\+\)'`
+    export patch_version=`expr ${version} ':' '[^.]\+\.[^.]\+\.\(.\+\)'`
+    docker build --pull -t ubleipzig/dacap:${version} .
+    docker push ubleipzig/dacap:${version}
+    for tag in "latest" "${major_version}" "${major_version}.${minor_version}"; do
+      docker tag ubleipzig/dacap:${version} ubleipzig/dacap:${tag}
+      docker push ubleipzig/dacap:${tag}
+    done
   cache:
     key: "${CI_PROJECT_ID}"
     paths:
     - .npm
   tags:
     - docker
+  except:
+  - branches
+  only:
+  - ^/release\/*/
+
+gh_pages:
+  stage: docs
+  image:
+    name: squidfunk/mkdocs-material:2.7.2
+    entrypoint: [ "/bin/sh", "-c" ]
+  only:
+  - /^master/
+  script: |
+    git remote set-url origin https://${GITLAB_USER}:${GITLAB_TOKEN}@git.sc.uni-leipzig.de/ubl/bdd_dev/autoconfig.git
+    mkdocs gh-deploy
+  tags:
+  - docker
+
+github_mirror:
+  stage: mirror
+  image:
+    name: alpine/git
+    entrypoint: [ "/bin/sh", "-c" ]
+  variables:
+    GIT_STRATEGY: clone
+    GIT_CHECKOUT: "false"
+  script: |
+    cd /tmp
+    git clone --mirror ${CI_REPOSITORY_URL} project
+    cd project
+    git remote add github https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/ubleipzig/autoconfig.git
+    git push --mirror github
+  tags:
+  - docker
