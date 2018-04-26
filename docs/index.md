@@ -12,7 +12,7 @@
 ### Installation
 
 ```bash
-$# npm install -g dacap
+$# npm install -g @ubleipzig/dacap
 ```
 ### Ausführung
 
