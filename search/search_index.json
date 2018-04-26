@@ -1,0 +1,94 @@
+{
+    "docs": [
+        {
+            "location": "/", 
+            "text": "dacap\n\n\nDynamic And Compressing Api Proxy\n ist ein Dienst, der Ausgaben beliebiger API-Endpunkte zwischenspeichert. Der Dienst wurde erstellt, um API-Requests, welche durch den zur Verf\u00fcgung stellenden Service nicht performant genug ausgeliefert werden k\u00f6nnen, zwischenzuspeichern und aus dem Cache auszuliefern zu k\u00f6nnen. Zus\u00e4tzlich wird das Response gzip-komprimiert ausgeliefert und die Cache-Daten werden in einem eingestellten Interval im Hintergrund erneuert.\n\n\nAbh\u00e4ngigkeiten\n\n\n\n\nnode \n= v8.2.1\n\n\nnpm \n= v5.3.0\n\n\n\n\nlokale Ausf\u00fchrung\n\n\nInstallation\n\n\n$# npm install -g dacap\n\n\n\n\nAusf\u00fchrung\n\n\n$# dacap\n\n\n\n\nals Container\n\n\n$# docker run -p 3000:3000 -v /my/hosts/data/folder:/data ubleipzig/dacap\n\n\n\n\nDie Konfiguration wird \u00fcber Umgebungsvariablen durchgef\u00fchrt, siehe \nerweiterte Konfiguration\n\n\nBenutzung\n\n\nNach dem Start ist das Admin-Interface unter \nhttp://localhost:3000/admin\n verf\u00fcgbar\n\n\nAls erstes wird ein \nCache\n definiert, in dem die Ergebnisse der Anfragen an einen API-Endpunkt gespeichert werden.\n\n\nUnter \nAPI-Endpoint\n wird die URL eingetragen, die zum Service f\u00fchrt (z.B. \nhttp://foo.example.com/\n),Unter \nCache-Name\n wird eine Bezeichnung f\u00fcr den Service eingetragen, (z.B. \nfoo\n).\n\n\nAlle Anfragen, die normalerweise an\n\n\nhttp://foo.example.com/?query=foo\noffset=0\nlimit=10\n\n\ngehen w\u00fcrden, k\u00f6nnen nun unter\n\n\nhttp://localhost:3000/ep/foo/?query=foo\noffset=0\nlimit=10\n\n\nabgefragt werden.\n\n\n\n\nnach dem Cache-Name ist zwingend ein Slash erforderlich, andernfalls kann der Endpunkt nicht aufgel\u00f6st werden.\n\n\nalles, was nach Cache-Name und Slash folgt, wird an den API-Endpunkt angeh\u00e4ngt.\n\n\n\n\nErweiterte Konfiguration\n\n\nDer Dienst l\u00e4sst sich \u00fcber Umgebungsvariablen konfigurieren, die beim Start des Dienstes ausgewertet werden:\n\n\n\n\ndata_dir\n: Spezifiziert den Ordner, wo der Cache in regelm\u00e4\u00dfigen Abst\u00e4nden gespeichert wird.\nCache und Endpunkte werden im Arbeitspeicher gehalten. Nach dem Neustart des Dienstes wird die Datei ausgelesen\nund vorhandene Endpunkte und Caches in den Arbeitspeicher geladen.\nStandardm\u00e4\u00dfig ist dieser Ordner der \ndata\n-Ordner in dem Ordner, aus dem der Prozess gestartet wurde (Im Container der Root-Ordner)\nEs ist sicherzustellen, dass der erstellt werden kann oder f\u00fcr den Dienst schreibbar ist, wenn er bereits existiert.\n\n\nproxy_path\n: Spezifiziert den Pfad an dem der Endpunkt nach der Registrierung mit seinem Cache-Namen erreichbar ist.\nStandardm\u00e4\u00dfig \n/ep/\n.\n\n\nproxy_port\n: Spezifiziert den Port, an dem der Dienst h\u00f6rt. Standardm\u00e4\u00dfig \n3000\n\n\nproxy_url\n: Spezifiziert die absolute URL des Dienstes mit Protokoll-Schema, Port und Pfad (z.B. \nhttps://api.example.com:8443/dacap\n)\nStandardm\u00e4\u00dfig \nhttp://localhost:${proxy_port}\n.\n\n\ncache_ttl\n: Spezifiziert die time-to-live in Sekunden f\u00fcr ein Cache-Ergebnis. Nach dieser Zeit wird das\nErgebnis erneuert. Standardm\u00e4\u00dfig \n600\n.\n\n\ndefault_check_period\n: spezifiziert das Intervall in Sekunden, in dem die Ablauf-Frist aller Cache-Ergebnisse gepr\u00fcft wird.\nStandardm\u00e4\u00dfig \n60\n.\n\n\narray_value_size\n: Unbekannte Konfiguration. Defaults to \n40\n\n\nobject_value_size\n: Unbekannte Konfiguration. Defaults to \n80\n\n\nautosave_interval\n: Spezifiziert das Intervall, in dem alle Cache-Ergebnisse und Endpunkt-Konfiguration in eine Datei\ngeschrieben werden. Standardm\u00e4\u00dfig \n60\n.\n\n\nregister_name\n: Spezifiziert den Namen des Registers, in dem alle Cache-Ergebnisse und Endpunkt-Konfigurationen\ngespeichert werden (ist gleichzeitig der Dateiname). Standardm\u00e4\u00dfig \napi-cache\n.\n\n\nstrip_path\n: Spezifiziert, ob der Pfad der Url entfernt werden soll. Standardm\u00e4\u00dfig \ntrue\n.", 
+            "title": "Deutsch"
+        }, 
+        {
+            "location": "/#dacap", 
+            "text": "Dynamic And Compressing Api Proxy  ist ein Dienst, der Ausgaben beliebiger API-Endpunkte zwischenspeichert. Der Dienst wurde erstellt, um API-Requests, welche durch den zur Verf\u00fcgung stellenden Service nicht performant genug ausgeliefert werden k\u00f6nnen, zwischenzuspeichern und aus dem Cache auszuliefern zu k\u00f6nnen. Zus\u00e4tzlich wird das Response gzip-komprimiert ausgeliefert und die Cache-Daten werden in einem eingestellten Interval im Hintergrund erneuert.", 
+            "title": "dacap"
+        }, 
+        {
+            "location": "/#abhangigkeiten", 
+            "text": "node  = v8.2.1  npm  = v5.3.0", 
+            "title": "Abh\u00e4ngigkeiten"
+        }, 
+        {
+            "location": "/#lokale-ausfuhrung", 
+            "text": "", 
+            "title": "lokale Ausf\u00fchrung"
+        }, 
+        {
+            "location": "/#installation", 
+            "text": "$# npm install -g dacap", 
+            "title": "Installation"
+        }, 
+        {
+            "location": "/#ausfuhrung", 
+            "text": "$# dacap", 
+            "title": "Ausf\u00fchrung"
+        }, 
+        {
+            "location": "/#als-container", 
+            "text": "$# docker run -p 3000:3000 -v /my/hosts/data/folder:/data ubleipzig/dacap  Die Konfiguration wird \u00fcber Umgebungsvariablen durchgef\u00fchrt, siehe  erweiterte Konfiguration", 
+            "title": "als Container"
+        }, 
+        {
+            "location": "/#benutzung", 
+            "text": "Nach dem Start ist das Admin-Interface unter  http://localhost:3000/admin  verf\u00fcgbar  Als erstes wird ein  Cache  definiert, in dem die Ergebnisse der Anfragen an einen API-Endpunkt gespeichert werden.  Unter  API-Endpoint  wird die URL eingetragen, die zum Service f\u00fchrt (z.B.  http://foo.example.com/ ),Unter  Cache-Name  wird eine Bezeichnung f\u00fcr den Service eingetragen, (z.B.  foo ).  Alle Anfragen, die normalerweise an  http://foo.example.com/?query=foo offset=0 limit=10  gehen w\u00fcrden, k\u00f6nnen nun unter  http://localhost:3000/ep/foo/?query=foo offset=0 limit=10  abgefragt werden.   nach dem Cache-Name ist zwingend ein Slash erforderlich, andernfalls kann der Endpunkt nicht aufgel\u00f6st werden.  alles, was nach Cache-Name und Slash folgt, wird an den API-Endpunkt angeh\u00e4ngt.", 
+            "title": "Benutzung"
+        }, 
+        {
+            "location": "/#erweiterte-konfiguration", 
+            "text": "Der Dienst l\u00e4sst sich \u00fcber Umgebungsvariablen konfigurieren, die beim Start des Dienstes ausgewertet werden:   data_dir : Spezifiziert den Ordner, wo der Cache in regelm\u00e4\u00dfigen Abst\u00e4nden gespeichert wird.\nCache und Endpunkte werden im Arbeitspeicher gehalten. Nach dem Neustart des Dienstes wird die Datei ausgelesen\nund vorhandene Endpunkte und Caches in den Arbeitspeicher geladen.\nStandardm\u00e4\u00dfig ist dieser Ordner der  data -Ordner in dem Ordner, aus dem der Prozess gestartet wurde (Im Container der Root-Ordner)\nEs ist sicherzustellen, dass der erstellt werden kann oder f\u00fcr den Dienst schreibbar ist, wenn er bereits existiert.  proxy_path : Spezifiziert den Pfad an dem der Endpunkt nach der Registrierung mit seinem Cache-Namen erreichbar ist.\nStandardm\u00e4\u00dfig  /ep/ .  proxy_port : Spezifiziert den Port, an dem der Dienst h\u00f6rt. Standardm\u00e4\u00dfig  3000  proxy_url : Spezifiziert die absolute URL des Dienstes mit Protokoll-Schema, Port und Pfad (z.B.  https://api.example.com:8443/dacap )\nStandardm\u00e4\u00dfig  http://localhost:${proxy_port} .  cache_ttl : Spezifiziert die time-to-live in Sekunden f\u00fcr ein Cache-Ergebnis. Nach dieser Zeit wird das\nErgebnis erneuert. Standardm\u00e4\u00dfig  600 .  default_check_period : spezifiziert das Intervall in Sekunden, in dem die Ablauf-Frist aller Cache-Ergebnisse gepr\u00fcft wird.\nStandardm\u00e4\u00dfig  60 .  array_value_size : Unbekannte Konfiguration. Defaults to  40  object_value_size : Unbekannte Konfiguration. Defaults to  80  autosave_interval : Spezifiziert das Intervall, in dem alle Cache-Ergebnisse und Endpunkt-Konfiguration in eine Datei\ngeschrieben werden. Standardm\u00e4\u00dfig  60 .  register_name : Spezifiziert den Namen des Registers, in dem alle Cache-Ergebnisse und Endpunkt-Konfigurationen\ngespeichert werden (ist gleichzeitig der Dateiname). Standardm\u00e4\u00dfig  api-cache .  strip_path : Spezifiziert, ob der Pfad der Url entfernt werden soll. Standardm\u00e4\u00dfig  true .", 
+            "title": "Erweiterte Konfiguration"
+        }, 
+        {
+            "location": "/Readme/", 
+            "text": "dacap\n\n\nDynamic And Compressing Api Proxy\n is a service which lets you proxy arbitrary API-Endpoints which are by themself to slow to be used in production environments. All cached Responses are held in memory, so be sure to provide enough.\n\n\n\n\n\n\nRequirements\n\n\n\n\nnode \n= v8.2.1\n\n\nnpm \n= v5.3.0\n\n\n\n\nlocal Execution\n\n\nInstallation\n\n\n$# npm install -g dacap\n\n\n\n\nExecution\n\n\n$# dacap\n\n\n\n\nas Container\n\n\n$# docker run -p 3000:3000 -v /my/hosts/data/folder:/data ubleipzig/dacap\n\n\n\n\nYou can customize multiple values, see \nAdvanced Configuration\n\n\nUsage\n\n\nAfter Start the Admin-Interface is available under \nhttp://localhost:3000/admin\n.\n\n\nFirst of all one has to define a \nCache\n where the requests to an API-Endpoint are stored. This is done from within the Admin Interface.\n\n\nOne has to define the URL to the desired \nAPI-Endpoint\n (e.g. \nhttp://foo.example.com/\n) and a \nCache-Name\n for this API-Endpoint (e.g. \nfoo\n).\n\n\nAll API-Requests which normally would go to\n\n\nhttp://foo.example.com/?query=foo\noffset=0\nlimit=10\n\n\nnow you can request by accessing\n\n\nhttp://localhost:3000/ep/foo/?query=foo\noffset=0\nlimit=10\n\n\n\n\nBe sure to append the Slash after the Cache-Name, otherwise the Endpoint cannot be resolved.\n\n\nEverything after the Cache-Name and Slash will be passed to the API-Endpoint.\n\n\n\n\nAdvanced Configuration\n\n\nThe service can be configured by environment variables. The following are available:\n\n\n\n\ndata_dir\n: Specifies the folder where the cache is stored in intervals. This is only used to\n make it more easy to restart the service without adding all Endpoints again. After restart the\n service reads the saved cache-file and keeps it in memory.\n By default this points to the \ndata\n-folder where the process was invoked. Make sure it can be created if not existing and written if already existing.\n\n\nproxy_path\n: Specifies the path where the Endpoints will be accessable after registering. By default this is \n/ep/\n.\n\n\nproxy_port\n: Specifies the port number where the service is listening. Defaults to \n3000\n.\n\n\nproxy_url\n: Specifies the absolute url of the service with protocol and port if differing from the defaults\n(e.g. \nhttps://api.example.com:8443/dacap\n). Defaults to \nhttp://localhost:${proxy_port}\n.\n\n\ncache_ttl\n: Specifies the time-to-live in seconds of a cached request. after this time the cache will be refreshed. Defaults to \n600\n\n\ndefault_check_period\n: Specifies the interval in seconds the cache is checked for expiry. Defaults to \n60\n\n\narray_value_size\n: Unkown configuration. Defaults to \n40\n\n\nobject_value_size\n: Unkown configuration. Defaults to \n80\n\n\nautosave_interval\n: Specifies the interval the cache is stored to harddisk. Defaults to \n60\n.\n\n\nregister_name\n: Specifies the name of the register where the cache is stored. Defaults to \napi-cache\n.\n\n\nstrip_path\n: Specifies whether the path should be stripped when processing requests. Defaults to \ntrue\n.\n\n\nuser\n: Specifies the user for simple basic authentication. Defaults to \nundefined\n.\n\n\npassword\n: Specifies the password for simple basic authentication. Defaults to \nundefined\n.\n\n\n\n\nOnly when both \nuser\n and \npassword\n are specified basic-auth is enabled", 
+            "title": "English"
+        }, 
+        {
+            "location": "/Readme/#dacap", 
+            "text": "Dynamic And Compressing Api Proxy  is a service which lets you proxy arbitrary API-Endpoints which are by themself to slow to be used in production environments. All cached Responses are held in memory, so be sure to provide enough.", 
+            "title": "dacap"
+        }, 
+        {
+            "location": "/Readme/#requirements", 
+            "text": "node  = v8.2.1  npm  = v5.3.0", 
+            "title": "Requirements"
+        }, 
+        {
+            "location": "/Readme/#local-execution", 
+            "text": "", 
+            "title": "local Execution"
+        }, 
+        {
+            "location": "/Readme/#installation", 
+            "text": "$# npm install -g dacap", 
+            "title": "Installation"
+        }, 
+        {
+            "location": "/Readme/#execution", 
+            "text": "$# dacap", 
+            "title": "Execution"
+        }, 
+        {
+            "location": "/Readme/#as-container", 
+            "text": "$# docker run -p 3000:3000 -v /my/hosts/data/folder:/data ubleipzig/dacap  You can customize multiple values, see  Advanced Configuration", 
+            "title": "as Container"
+        }, 
+        {
+            "location": "/Readme/#usage", 
+            "text": "After Start the Admin-Interface is available under  http://localhost:3000/admin .  First of all one has to define a  Cache  where the requests to an API-Endpoint are stored. This is done from within the Admin Interface.  One has to define the URL to the desired  API-Endpoint  (e.g.  http://foo.example.com/ ) and a  Cache-Name  for this API-Endpoint (e.g.  foo ).  All API-Requests which normally would go to  http://foo.example.com/?query=foo offset=0 limit=10  now you can request by accessing  http://localhost:3000/ep/foo/?query=foo offset=0 limit=10   Be sure to append the Slash after the Cache-Name, otherwise the Endpoint cannot be resolved.  Everything after the Cache-Name and Slash will be passed to the API-Endpoint.", 
+            "title": "Usage"
+        }, 
+        {
+            "location": "/Readme/#advanced-configuration", 
+            "text": "The service can be configured by environment variables. The following are available:   data_dir : Specifies the folder where the cache is stored in intervals. This is only used to\n make it more easy to restart the service without adding all Endpoints again. After restart the\n service reads the saved cache-file and keeps it in memory.\n By default this points to the  data -folder where the process was invoked. Make sure it can be created if not existing and written if already existing.  proxy_path : Specifies the path where the Endpoints will be accessable after registering. By default this is  /ep/ .  proxy_port : Specifies the port number where the service is listening. Defaults to  3000 .  proxy_url : Specifies the absolute url of the service with protocol and port if differing from the defaults\n(e.g.  https://api.example.com:8443/dacap ). Defaults to  http://localhost:${proxy_port} .  cache_ttl : Specifies the time-to-live in seconds of a cached request. after this time the cache will be refreshed. Defaults to  600  default_check_period : Specifies the interval in seconds the cache is checked for expiry. Defaults to  60  array_value_size : Unkown configuration. Defaults to  40  object_value_size : Unkown configuration. Defaults to  80  autosave_interval : Specifies the interval the cache is stored to harddisk. Defaults to  60 .  register_name : Specifies the name of the register where the cache is stored. Defaults to  api-cache .  strip_path : Specifies whether the path should be stripped when processing requests. Defaults to  true .  user : Specifies the user for simple basic authentication. Defaults to  undefined .  password : Specifies the password for simple basic authentication. Defaults to  undefined .   Only when both  user  and  password  are specified basic-auth is enabled", 
+            "title": "Advanced Configuration"
+        }
+    ]
+}
