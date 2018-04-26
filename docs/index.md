@@ -1,5 +1,8 @@
 # dacap
 
+[![pipeline status](https://git.sc.uni-leipzig.de/ubl/bdd_dev/dacap/badges/master/pipeline.svg)](https://git.sc.uni-leipzig.de/ubl/bdd_dev/dacap/commits/master)
+[![coverage report](https://git.sc.uni-leipzig.de/ubl/bdd_dev/dacap/badges/master/coverage.svg)](https://git.sc.uni-leipzig.de/ubl/bdd_dev/dacap/commits/master)
+
 *Dynamic And Compressing Api Proxy* ist ein Dienst, der Ausgaben beliebiger API-Endpunkte zwischenspeichert. Der Dienst wurde erstellt, um API-Requests, welche durch den zur Verfügung stellenden Service nicht performant genug ausgeliefert werden können, zwischenzuspeichern und aus dem Cache auszuliefern zu können. Zusätzlich wird das Response gzip-komprimiert ausgeliefert und die Cache-Daten werden in einem eingestellten Interval im Hintergrund erneuert.
 
 ## Abhängigkeiten
@@ -26,7 +29,7 @@ $# dacap
 $# docker run -p 3000:3000 -v /my/hosts/data/folder:/data ubleipzig/dacap
 ```
 
-Die Konfiguration wird über Umgebungsvariablen durchgeführt, siehe [erweiterte Konfiguration](#erweiterte Konfiguration)
+Die Konfiguration wird über Umgebungsvariablen durchgeführt, siehe [erweiterte Konfiguration]
 
 ## Benutzung
 
@@ -68,3 +71,5 @@ Der Dienst lässt sich über Umgebungsvariablen konfigurieren, die beim Start de
 * `password`: Spezifiziert das Passwort für die Basic Authentication. Standardmäßig `undefined`.
 
 **Nur wenn `user` und `password` angegeben sind, ist basic-auth aktiviert**
+
+[erweiterte Konfiguration]: #erweiterte-Konfiguration

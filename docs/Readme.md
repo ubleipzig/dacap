@@ -1,9 +1,9 @@
 # dacap
 
-*Dynamic And Compressing Api Proxy* is a service which lets you proxy arbitrary API-Endpoints which are by themself to slow to be used in production environments. All cached Responses are held in memory, so be sure to provide enough.
-
 [![pipeline status](https://git.sc.uni-leipzig.de/ubl/bdd_dev/dacap/badges/master/pipeline.svg)](https://git.sc.uni-leipzig.de/ubl/bdd_dev/dacap/commits/master)
 [![coverage report](https://git.sc.uni-leipzig.de/ubl/bdd_dev/dacap/badges/master/coverage.svg)](https://git.sc.uni-leipzig.de/ubl/bdd_dev/dacap/commits/master)
+
+*Dynamic And Compressing Api Proxy* is a service which lets you proxy arbitrary API-Endpoints which are by themself to slow to be used in production environments. All cached Responses are held in memory, so be sure to provide enough.
 
 ## Requirements
 
@@ -29,7 +29,7 @@ $# dacap
 $# docker run -p 3000:3000 -v /my/hosts/data/folder:/data ubleipzig/dacap
 ```
 
-You can customize multiple values, see [Advanced Configuration](#Advanced Configuration)
+You can customize multiple values, see [Advanced Configuration]
 
 ## Usage
 
@@ -69,3 +69,5 @@ The service can be configured by environment variables. The following are availa
 * `password`: Specifies the password for simple basic authentication. Defaults to `undefined`.
 
 **Only when both `user` and `password` are specified basic-auth is enabled**
+
+[Advanced Configuration]: #Advanced-Configuration
