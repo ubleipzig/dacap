@@ -54,14 +54,10 @@ now you can request by accessing
 
 The service can be configured by environment variables. The following are available:
 
-* `data_dir`: Specifies the folder where the cache is stored in intervals. This is only used to
- make it more easy to restart the service without adding all Endpoints again. After restart the
- service reads the saved cache-file and keeps it in memory.
- By default this points to the `data`-folder where the process was invoked. Make sure it can be created if not existing and written if already existing.
+* `data_dir`: Specifies the folder where the cache is stored in intervals. This is only used to make it more easy to restart the service without adding all Endpoints again. After restart the service reads the saved cache-file and keeps it in memory. By default this points to the `data`-folder where the process was invoked. Make sure it can be created if not existing and written if already existing.
 * `proxy_path`: Specifies the path where the Endpoints will be accessable after registering. By default this is `/ep/`.
 * `proxy_port`: Specifies the port number where the service is listening. Defaults to `3000`.
-* `proxy_url`: Specifies the absolute url of the service with protocol and port if differing from the defaults
-(e.g. `https://api.example.com:8443/dacap`). Defaults to `http://localhost:${proxy_port}`.
+* `proxy_url`: Specifies the absolute url of the service with protocol and port if differing from the defaults (e.g. `https://api.example.com:8443/dacap`). Defaults to `http://localhost:${proxy_port}`.
 * `cache_ttl`: Specifies the time-to-live in seconds of a cached request. after this time the cache will be refreshed. Defaults to `600`
 * `default_check_period`: Specifies the interval in seconds the cache is checked for expiry. Defaults to `60`
 * `array_value_size`: Unkown configuration. Defaults to `40`
