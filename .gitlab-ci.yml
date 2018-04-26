@@ -49,7 +49,7 @@ npm_publish:
     entrypoint: ["/bin/su", "node", "-c"]
   script:
   - 'echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc'
-  - npm publish
+  - npm publish --access public
   cache:
     key: "${CI_PROJECT_ID}"
     paths:
