@@ -105,13 +105,19 @@ export class Register {
 		return true;
 	}
 
-	async restore(): Promise<void> {
-		const data = JSON.parse(fs.readFileSync(path.resolve(this.storage, this.name), { encoding: 'utf8' }));
+	async restore(): Promise<boolean> {
+		try {
+			const data = JSON.parse(fs.readFileSync(path.resolve(this.storage, this.name), { encoding: 'utf8' }));
 
-		data.map((cache) => {
-			this.cacheRegister[cache.name] = new Cache();
-			this.cacheRegister[cache.name].fromObject(cache.data);
-		});
-		debug(`register "${this.name}" restored from "${this.storage}"`);
+			data.map((cache) => {
+				this.cacheRegister[cache.name] = new Cache();
+				this.cacheRegister[cache.name].fromObject(cache.data);
+			});
+			debug(`register "${this.name}" restored from "${this.storage}"`);
+			return true;
+		} catch (e) {
+			debug(`register "${this.name}" could not be restored: ${e}`);
+			return false;
+		}
 	}
 }

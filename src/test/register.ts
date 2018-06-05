@@ -290,7 +290,7 @@ describe('Register', () => {
 
 			it('should restore the register', (done) => {
 				let register = new Register(tmpPath, 'foo');
-				register.restore().then(() => {
+				register.restore().then(result => {
 					should(register.has('newCache')).be.true;
 					should(register.getInfo('newCache').apiEndPoint).eql('http://example.com/');
 					should(register.get('newCache').getCache().get('validHash')).containEql({
@@ -298,6 +298,7 @@ describe('Register', () => {
 						contentType: 'x-mostly/garbage',
 						data: 'validData'
 					});
+					should(result).eql(true);
 					done();
 				}).catch(done);
 			});
@@ -305,11 +306,10 @@ describe('Register', () => {
 		describe('non-existing file', () => {
 			it('should reject promise', (done) => {
 				let register = new Register(tmpPath, 'foo');
-				register.restore().then(() => {
-					done('promise was resolved')
-				}).catch(() => {
+				register.restore().then(result => {
+					should(result).eql(false);
 					done();
-				})
+				}).catch(done);
 			});
 		});
 	});

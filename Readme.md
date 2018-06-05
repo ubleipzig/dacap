@@ -70,4 +70,10 @@ The service can be configured by environment variables. The following are availa
 
 **Only when both `user` and `password` are specified basic-auth is enabled**
 
-[Advanced Configuration]: #Advanced-Configuration
+## Documentation
+
+Docs are created with [mkdocs] and published to [Github Pages]
+
+[Advanced Configuration]: #advanced-configuration
+[mkdocs]: https://www.mkdocs.org/
+[Github Pages]: https://ubleipzig.github.io/dacap/
