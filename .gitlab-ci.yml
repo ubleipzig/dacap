@@ -76,10 +76,6 @@ docker_build:
     - image.tar.gz
   tags:
     - docker
-  except:
-  - branches
-  only:
-  - /^release\/*/
 
 npm_publish:
   stage: publish
