@@ -1,20 +1,21 @@
 stages:
-- build
+- prepare
 - test
+- build
 - publish
-- image
 - docs
 - mirror
 
+variables:
+  npm_config_cache: ${CI_PROJECT_DIR}/.npm
+
 npm_install:
-  stage: build
+  stage: prepare
   image:
     name: node:8-alpine
     entrypoint: ["/bin/su", "node", "-c"]
   script:
-    - test -d .npm && mv .npm ${HOME}
     - npm run build
-    - mv ${HOME}/.npm .
   cache:
     key: "${CI_PROJECT_ID}"
     paths:
@@ -42,18 +43,37 @@ npm_ci:
   tags:
   - docker
 
-npm_publish:
-  stage: publish
+npm_pack:
+  stage: build
   image:
     name: node:8-alpine
     entrypoint: ["/bin/su", "node", "-c"]
   script:
   - 'echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc'
-  - npm publish --access public
+  - npm pack
   cache:
     key: "${CI_PROJECT_ID}"
     paths:
     - .npm
+  artifacts:
+    name: npm-pack
+    paths:
+    - '*.tgz'
+  tags:
+    - docker
+
+docker_build:
+  stage: build
+  image: docker:latest
+  services:
+  - docker:dind
+  script: |
+    docker build --pull -t image .
+    docker save --output=image.tar.gz image
+  artifacts:
+    name: docker-image
+    paths:
+    - image.tar.gz
   tags:
     - docker
   except:
@@ -61,8 +81,25 @@ npm_publish:
   only:
   - /^release\/*/
 
-docker_build:
-  stage: image
+npm_publish:
+  stage: publish
+  image:
+    name: node:8-alpine
+    entrypoint: ["/bin/su", "node", "-c"]
+  script:
+  - 'echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc'
+  - npm publish *.tgz --access public
+  dependencies:
+  - npm_pack
+  tags:
+  - docker
+  except:
+  - branches
+  only:
+  - /^release\/*/
+
+docker_publish:
+  stage: publish
   image: docker:latest
   services:
   - docker:dind
@@ -72,7 +109,8 @@ docker_build:
     export major_version=`expr ${version} ':' '\([^.]\+\)'`
     export minor_version=`expr ${version} ':' '[^.]\+\.\([^.]\+\)'`
     export patch_version=`expr ${version} ':' '[^.]\+\.[^.]\+\.\(.\+\)'`
-    docker build --pull -t ubleipzig/dacap:${version} .
+    docker load --input=image.tar.gz
+    docker tag image ubleipzig/dacap:${version}
     docker push ubleipzig/dacap:${version}
     for tag in "latest" "${major_version}" "${major_version}.${minor_version}"; do
       docker tag ubleipzig/dacap:${version} ubleipzig/dacap:${tag}
