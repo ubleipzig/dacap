@@ -78,6 +78,8 @@ docker_build:
       -t image \
       .
     docker save --output=image.tar.gz image
+  dependencies:
+  - npm_pack
   artifacts:
     name: docker-image
     paths:
@@ -102,7 +104,7 @@ npm_publish:
   only:
   - /^release\/*/
 
-docker_publish:
+docker_publish_production:
   stage: publish
   image: docker:latest
   services:
@@ -120,16 +122,36 @@ docker_publish:
       docker tag ubleipzig/dacap:${version} ubleipzig/dacap:${tag}
       docker push ubleipzig/dacap:${tag}
     done
-  cache:
-    key: "${CI_PROJECT_ID}"
-    paths:
-    - .npm
   tags:
     - docker
   except:
   - branches
   only:
   - /^release\/*/
+
+docker_publish_staging:
+  stage: publish
+  image: docker:latest
+  services:
+  - docker:dind
+  script: |
+    mkdir -p ~/.docker && echo "$DOCKER_AUTH_CONFIG" >~/.docker/config.json
+    docker load --input=image.tar.gz
+    docker tag image ubleipzig/dacap:staging
+    docker push ubleipzig/dacap:staging
+  tags:
+    - docker
+  only:
+  - master
+
+deploy_staging:
+  stage: deploy
+  image: rancher:latest
+  environment:
+    name: staging
+    url: https://staging.ub.uni-leipzig.de/dacap
+  only:
+  - master
 
 gh_pages:
   stage: docs
