@@ -51,7 +51,6 @@ npm_pack:
     name: node:8-alpine
     entrypoint: ["/bin/su", "node", "-c"]
   script:
-  - 'echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc'
   - npm pack
   cache:
     key: "${CI_PROJECT_ID}"
