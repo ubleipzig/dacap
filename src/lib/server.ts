@@ -47,7 +47,10 @@ export class Server {
 
 		if (this.config.stripPath === false) {
 			this.prePath = url.parse(this.config.proxyUrl).path;
+		} else {
+			this.prePath = '/';
 		}
+
 		this.expressApp = express();
 
 		this.initRegister();
@@ -77,7 +80,7 @@ export class Server {
 		if (this.config.user && this.config.password) {
 			const self = this;
 			this.expressApp.use((req, res, next) => {
-				if (!req.path.match(new RegExp(`^${this.prePath}/admin/`))) return next();
+				if (!req.path.match(new RegExp(`^${this.prePath}admin/`))) return next();
 				const authOptions = { users: {}, challenge: true };
 				authOptions.users[this.config.user] = this.config.password;
 				debug('restricted area');
@@ -91,13 +94,13 @@ export class Server {
 			res.send();
 		});
 
-		this.expressApp.get(this.prePath + '/admin/api/logout', (req, res, next) => {
+		this.expressApp.get(this.prePath + 'admin/api/logout', (req, res, next) => {
 			res.statusCode = 401
-			res.end(this.prePath + '/admin/');
+			res.end(this.prePath + 'admin/');
 		});
 
 
-		this.expressApp.get(this.prePath + '/admin/api/config', (req, res, next) => {
+		this.expressApp.get(this.prePath + 'admin/api/config', (req, res, next) => {
 			const publicConfig: publicConfig = {
 				proxyPath: this.config.proxyPath,
 				proxyUrl: this.config.proxyUrl,
@@ -107,7 +110,7 @@ export class Server {
 			res.send(publicConfig);
 		});
 
-		this.expressApp.post(this.prePath + '/admin/api/add/cache/:name', (req, res, next) => {
+		this.expressApp.post(this.prePath + 'admin/api/add/cache/:name', (req, res, next) => {
 			if (!req.body || !req.body.apiEndPoint) return res.status(400).send(`you need to specify at least an url`);
 			if (this.register.has(req.body.name)) return res.send(`already registered endpoint "${req.params.name}"`);
 			this.register.add(req.params.name, req.body.apiEndPoint, {
@@ -119,7 +122,7 @@ export class Server {
 			res.json(this.register.getInfo(req.params.name));
 		});
 
-		this.expressApp.get(this.prePath + '/admin/api/list/cache', async (req, res, next) => {
+		this.expressApp.get(this.prePath + 'admin/api/list/cache', async (req, res, next) => {
 			try {
 				res.json(this.register.getInfo());
 			} catch (err) {
@@ -127,7 +130,7 @@ export class Server {
 			}
 		});
 
-		this.expressApp.get(this.prePath + '/admin/api/delete/cache/:name', (req, res, next) => {
+		this.expressApp.get(this.prePath + 'admin/api/delete/cache/:name', (req, res, next) => {
 			try {
 				this.register.delete(req.params.name);
 				res.json({});
@@ -136,7 +139,7 @@ export class Server {
 			}
 		})
 
-		this.expressApp.get(this.prePath + '/admin/api/flush/cache/:name', (req, res, next) => {
+		this.expressApp.get(this.prePath + 'admin/api/flush/cache/:name', (req, res, next) => {
 			try {
 				const cache = this.register.get(req.params.name)
 				cache.flush();
@@ -146,7 +149,7 @@ export class Server {
 			}
 		});
 
-		this.expressApp.get(this.prePath + '/admin/api/delete/cache/:name/key/:hash', (req, res, next) => {
+		this.expressApp.get(this.prePath + 'admin/api/delete/cache/:name/key/:hash', (req, res, next) => {
 			try {
 				const cache = this.register.get(req.params.name)
 				cache.del(req.params.hash);
@@ -156,7 +159,7 @@ export class Server {
 			}
 		})
 
-		this.expressApp.get(this.prePath + '/admin/api/refresh/cache/:name/key/:hash', async (req, res, next) => {
+		this.expressApp.get(this.prePath + 'admin/api/refresh/cache/:name/key/:hash', async (req, res, next) => {
 			try {
 				const cache = this.register.get(req.params.name);
 				const value = cache.getCache().get(req.params.hash);
@@ -172,10 +175,10 @@ export class Server {
 			let WebpackDevMiddleware = require('webpack-dev-middleware');
 			let webpackConfig = require('../webpack.dev');
 			this.expressApp.use(WebpackDevMiddleware(webpack(webpackConfig), {
-				publicPath: `${this.prePath}/admin/`
+				publicPath: `${this.prePath}admin/`
 			}));
 		} else {
-			this.expressApp.use(`${this.prePath}/admin/`, express.static(path.resolve(__dirname, '..', 'public')));
+			this.expressApp.use(`${this.prePath}admin/`, express.static(path.resolve(__dirname, '..', 'public')));
 		}
 
 		this.expressApp.use(this.prePath + this.config.proxyPath, Middleware(this.register));
