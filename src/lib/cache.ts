@@ -86,9 +86,7 @@ export class Cache {
 			}
 		} else {
 			debug(`cache hit. ttl is ${this.nodeCache.getTtl(hash)}`);
-
 		}
-
 		return value;
 	}
 

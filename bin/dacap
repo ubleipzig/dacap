@@ -6,9 +6,9 @@ const path = require('path');
 const Server = require('../lib/server').Server;
 
 const storagePath = process.env.data_dir || path.resolve(process.cwd(), 'data');
-const proxyPath = process.env.proxy_path || '/ep/';
+const proxyPath = process.env.proxy_path || 'ep/';
 const proxyPort = parseInt(process.env.proxy_port) || 3000;
-const proxyUrl = process.env.proxy_url || `http://localhost:${proxyPort}`;
+const proxyUrl = process.env.proxy_url || `http://localhost:${proxyPort}/`;
 const defaultTtl = parseInt(process.env.cache_ttl) || 600;
 const defaultCheckPeriod = parseInt(process.env.default_check_period) || 60;
 const defaultArrayValueSize = parseInt(process.env.array_value_size) || 40;
