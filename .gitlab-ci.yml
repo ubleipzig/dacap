@@ -5,6 +5,7 @@ stages:
 - bundle_npm
 - build_image
 - publish
+- deploy
 - docs
 - mirror
 
@@ -14,7 +15,7 @@ variables:
 npm_install:
   stage: prepare
   image:
-    name: node:8-alpine
+    name: node:10-alpine
     entrypoint: ["/bin/su", "node", "-c"]
   script:
     - npm run build
@@ -32,7 +33,7 @@ npm_install:
 npm_ci:
   stage: test
   image:
-    name: node:8-alpine
+    name: node:10-alpine
     entrypoint: ["/bin/su", "node", "-c"]
   script:
   - npm run ci
@@ -48,7 +49,7 @@ npm_ci:
 npm_pack:
   stage: bundle_npm
   image:
-    name: node:8-alpine
+    name: node:10-alpine
     entrypoint: ["/bin/su", "node", "-c"]
   script:
   - npm pack
@@ -91,7 +92,7 @@ docker_build:
 npm_publish:
   stage: publish
   image:
-    name: node:8-alpine
+    name: node:10-alpine
     entrypoint: ["/bin/su", "node", "-c"]
   script:
   - 'echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc'
@@ -103,7 +104,7 @@ npm_publish:
   except:
   - branches
   only:
-  - /^release\/*/
+  - /^release\/.*/
 
 docker_publish_production:
   stage: publish
@@ -112,10 +113,10 @@ docker_publish_production:
   - docker:dind
   script: |
     mkdir -p ~/.docker && echo "$DOCKER_AUTH_CONFIG" >~/.docker/config.json
-    export version=`expr ${CI_COMMIT_TAG} ':' 'release/\(.\+\)'`
-    export major_version=`expr ${version} ':' '\([^.]\+\)'`
-    export minor_version=`expr ${version} ':' '[^.]\+\.\([^.]\+\)'`
-    export patch_version=`expr ${version} ':' '[^.]\+\.[^.]\+\.\(.\+\)'`
+    version=`expr ${CI_COMMIT_TAG} ':' 'release/\(.\+\)'`
+    major_version=`expr ${version} ':' '\([^.]\+\)'`
+    minor_version=`expr ${version} ':' '[^.]\+\.\([^.]\+\)'`
+    patch_version=`expr ${version} ':' '[^.]\+\.[^.]\+\.\(.\+\)'`
     docker load --input=image.tar.gz
     docker tag image ubleipzig/dacap:${version}
     docker push ubleipzig/dacap:${version}
@@ -130,7 +131,7 @@ docker_publish_production:
   except:
   - branches
   only:
-  - /^release\/*/
+  - /^release\/.*/
 
 docker_publish_alpha:
   stage: publish
@@ -138,16 +139,17 @@ docker_publish_alpha:
   services:
   - docker:dind
   script: |
+    test "${DOCKER_AUTH_CONFIG}" == "" && echo "docker-config does not exists, aborting!" && false
     mkdir -p ~/.docker && echo "$DOCKER_AUTH_CONFIG" >~/.docker/config.json
     docker load --input=image.tar.gz
-    docker tag image ubleipzig/dacap:alpha
-    docker push ubleipzig/dacap:alpha
+    docker tag image ubleipzig/dacap:alpha-${CI_COMMIT_REF_NAME}
+    docker push ubleipzig/dacap:alpha-${CI_COMMIT_REF_NAME}
   dependencies:
   - docker_build
   tags:
     - docker
   only:
-  - master
+  - /^[0-9]+-/
 
 docker_publish_staging:
   stage: publish
@@ -164,24 +166,176 @@ docker_publish_staging:
   tags:
     - docker
   only:
-  - staging
+  - master
 
-# deploy_staging:
-#   stage: deploy
-#   image: rancher:latest
-#   environment:
-#     name: staging
-#     url: https://staging.ub.uni-leipzig.de/dacap
-#   only:
-#   - master
+deploy_alpha:
+  stage: deploy
+  image: dtzar/helm-kubectl:2.9.1
+  variables:
+    k8s_namespace: dacap_alpha
+    url_schema: https://
+    ingress_host: alpha.ub.uni-leipzig.de
+    ingress_path: /dacap
+  environment:
+    name: alpha/${CI_COMMIT_REF_NAME}
+    url: https://alpha.ub.uni-leipzig.de/dacap/${CI_COMMIT_REF_NAME}/admin
+  script: |
+    test "${KUBE_CONFIG}" == "" && echo "kubeconfig does not exists, aborting!" && false
+    mkdir ~/.kube && echo "${KUBE_CONFIG}" > ~/.kube/config
+
+    test "$(helm ls --deleted --failed --short | grep issue-${CI_COMMIT_REF_NAME})" != "" && helm delete --purge issue-${CI_COMMIT_REF_NAME}
+
+    git clone https://git.sc.uni-leipzig.de/ubl/bdd_dev/webmasterei/helm-charts.git/
+    cd helm-charts
+
+    if [ "$(helm ls | grep issue-${CI_COMMIT_REF_NAME} | grep DEPLOYED)" == "" ];then
+      echo "Release not installed. Installing..."
+      helm install -n issue-${CI_COMMIT_REF_NAME} \
+        --namespace dacap-alpha \
+        --set environment.proxy_url=${url_schema}${ingress_host}${ingress_path}/${CI_COMMIT_REF_NAME}/ \
+        --set environment.http_proxy=http://proxy.uni-leipzig.de:3128 \
+        --set ingress.path=${ingress_path}/${CI_COMMIT_REF_NAME} \
+        --set ingress.hosts[0]=${ingress_host} \
+        --set image.tag=alpha-${CI_COMMIT_REF_NAME} \
+        --set pullPolicy=Always \
+        ./webmasterei/dacap/
+    else
+      echo "Release already installed. Upgrading..."
+      helm upgrade issue-${CI_COMMIT_REF_NAME} \
+        --recreate-pods \
+        --reuse-values \
+        --set foo=bar \
+        ./webmasterei/dacap/
+    fi
+
+    echo "Waiting for successful deploy..."
+    counter=0
+    while [ "$(helm ls | grep issue-${CI_COMMIT_REF_NAME} | awk -F"\t" '{ print $4; }')" != "DEPLOYED" ]; do
+      sleep 1
+      if [ $counter -eq 60 ];then break && false; fi
+      counter=$[$counter+1];
+    done
+  dependencies:
+  - docker_publish_alpha
+  tags:
+  - docker
+  only:
+  - /^[0-9]+-/
+  except:
+  - tags
+
+deploy_staging:
+  stage: deploy
+  image: dtzar/helm-kubectl:2.9.1
+  variables:
+    k8s_namespace: dacap_staging
+    url_schema: https://
+    ingress_host: staging.ub.uni-leipzig.de
+    ingress_path: /dacap
+  environment:
+    name: staging
+    url: https://alpha.ub.uni-leipzig.de/dacap/admin
+  script: |
+    test "${KUBE_CONFIG}" == "" && echo "kubeconfig does not exists, aborting!" && false
+    mkdir ~/.kube && echo "${KUBE_CONFIG}" > ~/.kube/config
+
+    test "$(helm ls --deleted --failed --short | grep staging" != "" && helm delete --purge staging
+
+    git clone https://git.sc.uni-leipzig.de/ubl/bdd_dev/webmasterei/helm-charts.git/
+    cd helm-charts
+
+    if [ "$(helm ls | grep staging | grep DEPLOYED)" == "" ];then
+      echo "Release not installed. Installing..."
+      helm install -n staging \
+        --namespace dacap-staging \
+        --set environment.proxy_url=${url_schema}${ingress_host}${ingress_path} \
+        --set environment.http_proxy=http://proxy.uni-leipzig.de:3128 \
+        --set ingress.path=${ingress_path} \
+        --set ingress.hosts[0]=${ingress_host} \
+        --set image.tag=staging \
+        --set pullPolicy=Always \
+        ./webmasterei/dacap/
+    else
+      echo "Release already installed. Upgrading..."
+      helm upgrade staging \
+        --recreate-pods \
+        --reuse-values \
+        --set foo=bar \
+        ./webmasterei/dacap/
+    fi
+
+    echo "Waiting for successful deploy..."
+    counter=0
+    while [ "$(helm ls | grep staging | awk -F"\t" '{ print $4; }')" != "DEPLOYED" ]; do
+      sleep 1
+      if [ $counter -eq 60 ];then break && false; fi
+      counter=$[$counter+1];
+    done
+  dependencies:
+  - docker_publish_staging
+  tags:
+  - docker
+  only:
+  - master
+
+deploy_production:
+  stage: deploy
+  image: dtzar/helm-kubectl:2.9.1
+  variables:
+    k8s_namespace: dacap_production
+    url_schema: https://
+    ingress_host: api.ub.uni-leipzig.de
+    ingress_path: /dacap
+  environment:
+    name: production
+    url: https://api.ub.uni-leipzig.de/dacap/admin
+  script: |
+    version=`expr ${CI_COMMIT_TAG} ':' 'release/\(.\+\)'`
+    test "${KUBE_CONFIG}" == "" && echo "kubeconfig does not exists, aborting!" && false
+    mkdir ~/.kube && echo "${KUBE_CONFIG}" > ~/.kube/config
+
+    git clone https://git.sc.uni-leipzig.de/ubl/bdd_dev/webmasterei/helm-charts.git/
+    cd helm-charts
+
+    if [ "$(helm ls | grep production | grep DEPLOYED)" == "" ];then
+      echo "Release not installed. Installing..."
+      helm install -n production \
+        --namespace dacap-production \
+        --set environment.proxy_url=${url_schema}${ingress_host}${ingress_path}/ \
+        --set environment.http_proxy=http://proxy.uni-leipzig.de:3128 \
+        --set ingress.path=${ingress_path} \
+        --set ingress.hosts[0]=${ingress_host} \
+        --set image.tag=${version} \
+        --set pullPolicy=Always \
+        ./webmasterei/dacap/
+    else
+      echo "Release already installed. Upgrading..."
+      helm upgrade production \
+        --recreate-pods \
+        --reuse-values \
+        --set foo=bar \
+        ./webmasterei/dacap/
+    fi
+
+    echo "Waiting for successful deploy..."
+    counter=0
+    while [ "$(helm ls | grep production | awk -F"\t" '{ print $4; }')" != "DEPLOYED" ]; do
+      sleep 1
+      if [ $counter -eq 60 ];then break && false; fi
+      counter=$[$counter+1];
+    done
+  dependencies:
+  - docker_publish_staging
+  tags:
+  - docker
+  only:
+  - /^release\/.*/
 
 gh_pages:
   stage: docs
   image:
     name: squidfunk/mkdocs-material:2.7.2
     entrypoint: [ "/bin/sh", "-c" ]
-  only:
-  - /^master/
   script: |
     git remote set-url origin https://${GITLAB_USER}:${GITLAB_TOKEN}@git.sc.uni-leipzig.de/ubl/bdd_dev/webmasterei/dacap.git
     mkdocs gh-deploy
@@ -190,7 +344,7 @@ gh_pages:
   except:
   - branches
   only:
-  - /^release\/*/
+  - /^release\/.*/
 
 github_mirror:
   stage: mirror
