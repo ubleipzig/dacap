@@ -239,7 +239,7 @@ deploy_staging:
     test "${KUBE_CONFIG}" == "" && echo "kubeconfig does not exists, aborting!" && false
     mkdir ~/.kube && echo "${KUBE_CONFIG}" > ~/.kube/config
 
-    test "$(helm ls --deleted --failed --short | grep staging" != "" && helm delete --purge staging
+    test "$(helm ls --deleted --failed --short | grep staging)" != "" && helm delete --purge staging
 
     git clone https://git.sc.uni-leipzig.de/ubl/bdd_dev/webmasterei/helm-charts.git/
     cd helm-charts
