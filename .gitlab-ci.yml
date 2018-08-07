@@ -102,6 +102,44 @@ npm_publish:
   only:
   - /^release\/.*/
 
+docker_publish_alpha:
+  stage: publish
+  image: ubleipzig/deployer:1.0.0
+  services:
+  - docker:dind
+  script: |
+    deployer publish \
+      --input image.tar.gz \
+      --docker-config "${DOCKER_AUTH_CONFIG}" \
+      --name ${image_name} \
+      --tag ${CI_COMMIT_REF_NAME}
+  dependencies:
+  - docker_build
+  tags:
+  - docker
+  only:
+  - branches
+  except:
+  - master
+
+docker_publish_staging:
+  stage: publish
+  image: ubleipzig/deployer:1.0.0
+  services:
+  - docker:dind
+  script: |
+    deployer publish \
+      --input image.tar.gz \
+      --docker-config "$DOCKER_AUTH_CONFIG" \
+      --name ${image_name} \
+      --tag staging
+  dependencies:
+  - docker_build
+  tags:
+    - docker
+  only:
+  - master
+
 docker_publish_production:
   stage: publish
   image: ubleipzig/deployer:1.0.0
@@ -126,42 +164,6 @@ docker_publish_production:
   - branches
   only:
   - /^release\/.*/
-
-docker_publish_alpha:
-  stage: publish
-  image: ubleipzig/deployer:1.0.0
-  services:
-  - docker:dind
-  script: |
-    deployer publish \
-      --docker-config "$DOCKER_AUTH_CONFIG" \
-      --name ${image_name} \
-      --tag ${CI_COMMIT_REF_NAME}
-  dependencies:
-  - docker_build
-  tags:
-  - docker
-  only:
-  - branches
-  except:
-  - master
-
-docker_publish_staging:
-  stage: publish
-  image: ubleipzig/deployer:1.0.0
-  services:
-  - docker:dind
-  script: |
-    deployer publish \
-      --docker-config "$DOCKER_AUTH_CONFIG" \
-      --name ${image_name} \
-      --tag staging
-  dependencies:
-  - docker_build
-  tags:
-    - docker
-  only:
-  - master
 
 deploy_alpha:
   stage: deploy
