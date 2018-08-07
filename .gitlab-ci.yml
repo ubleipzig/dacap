@@ -11,6 +11,7 @@ stages:
 
 variables:
   npm_config_cache: ${CI_PROJECT_DIR}/.npm
+  image_name: ubleipzig/dacap
 
 npm_install:
   stage: prepare
@@ -66,20 +67,11 @@ npm_pack:
 
 docker_build:
   stage: build_image
-  image: docker:latest
+  image: ubleipzig/deployer:1.0.0
   services:
   - docker:dind
   script: |
-    docker build --pull \
-      --build-arg HTTP_PROXY=${HTTP_PROXY} \
-      --build-arg HTTPS_PROXY=${HTTPS_PROXY} \
-      --build-arg NO_PROXY=${NO_PROXY} \
-      --build-arg http_proxy=${HTTP_PROXY} \
-      --build-arg https_proxy=${HTTPS_PROXY} \
-      --build-arg no_proxy=${NO_PROXY} \
-      -t image \
-      .
-    docker save --output=image.tar.gz image
+    deployer build --output image.tar.gz
   dependencies:
   - npm_pack
   artifacts:
@@ -108,22 +100,20 @@ npm_publish:
 
 docker_publish_production:
   stage: publish
-  image: docker:latest
+  image: ubleipzig/deployer:1.0.0
   services:
   - docker:dind
   script: |
-    mkdir -p ~/.docker && echo "$DOCKER_AUTH_CONFIG" >~/.docker/config.json
     version=`expr ${CI_COMMIT_TAG} ':' 'release/\(.\+\)'`
-    major_version=`expr ${version} ':' '\([^.]\+\)'`
-    minor_version=`expr ${version} ':' '[^.]\+\.\([^.]\+\)'`
-    patch_version=`expr ${version} ':' '[^.]\+\.[^.]\+\.\(.\+\)'`
-    docker load --input=image.tar.gz
-    docker tag image ubleipzig/dacap:${version}
-    docker push ubleipzig/dacap:${version}
-    for tag in "latest" "${major_version}" "${major_version}.${minor_version}"; do
-      docker tag ubleipzig/dacap:${version} ubleipzig/dacap:${tag}
-      docker push ubleipzig/dacap:${tag}
-    done
+    deployer publish \
+      --input image.tar.gz
+      --docker-config "$DOCKER_AUTH_CONFIG" \
+      --name ${image_name} \
+      --tag latest \
+      --tag ${version} \
+      --tag $(expr ${version} ':' '\([^.]\+\)') \
+      --tag $(expr ${version} ':' '[^.]\+\.\([^.]\+\)') \
+      --tag $(expr ${version} ':' '[^.]\+\.[^.]\+\.\(.\+\))`
   dependencies:
   - docker_build
   tags:
@@ -135,32 +125,33 @@ docker_publish_production:
 
 docker_publish_alpha:
   stage: publish
-  image: docker:latest
+  image: ubleipzig/deployer:1.0.0
   services:
   - docker:dind
   script: |
-    test "${DOCKER_AUTH_CONFIG}" == "" && echo "docker-config does not exists, aborting!" && false
-    mkdir -p ~/.docker && echo "$DOCKER_AUTH_CONFIG" >~/.docker/config.json
-    docker load --input=image.tar.gz
-    docker tag image ubleipzig/dacap:alpha-${CI_COMMIT_REF_NAME}
-    docker push ubleipzig/dacap:alpha-${CI_COMMIT_REF_NAME}
+    deployer publish \
+      --docker-config "$DOCKER_AUTH_CONFIG" \
+      --name ${image_name} \
+      --tag ${CI_COMMIT_REF_NAME}
   dependencies:
   - docker_build
   tags:
-    - docker
+  - docker
   only:
-  - /^[0-9]+-/
+  - branches
+  except:
+  - master
 
 docker_publish_staging:
   stage: publish
-  image: docker:latest
+  image: ubleipzig/deployer:1.0.0
   services:
   - docker:dind
   script: |
-    mkdir -p ~/.docker && echo "$DOCKER_AUTH_CONFIG" >~/.docker/config.json
-    docker load --input=image.tar.gz
-    docker tag image ubleipzig/dacap:staging
-    docker push ubleipzig/dacap:staging
+    deployer publish \
+      --docker-config "$DOCKER_AUTH_CONFIG" \
+      --name ${image_name} \
+      --tag staging
   dependencies:
   - docker_build
   tags:
@@ -170,9 +161,8 @@ docker_publish_staging:
 
 deploy_alpha:
   stage: deploy
-  image: dtzar/helm-kubectl:2.9.1
+  image: ubleipzig/deployer:1.0.0
   variables:
-    k8s_namespace: dacap_alpha
     url_schema: https://
     ingress_host: alpha.ub.uni-leipzig.de
     ingress_path: /dacap
@@ -180,97 +170,55 @@ deploy_alpha:
     name: alpha/${CI_COMMIT_REF_NAME}
     url: https://alpha.ub.uni-leipzig.de/dacap/${CI_COMMIT_REF_NAME}/admin
   script: |
-    test "${KUBE_CONFIG}" == "" && echo "kubeconfig does not exists, aborting!" && false
-    mkdir ~/.kube && echo "${KUBE_CONFIG}" > ~/.kube/config
-
-    test "$(helm ls --deleted --failed --short | grep issue-${CI_COMMIT_REF_NAME})" != "" && helm delete --purge issue-${CI_COMMIT_REF_NAME}
-
-    git clone https://git.sc.uni-leipzig.de/ubl/bdd_dev/webmasterei/helm-charts.git/
-    cd helm-charts
-
-    if [ "$(helm ls | grep issue-${CI_COMMIT_REF_NAME} | grep DEPLOYED)" == "" ];then
-      echo "Release not installed. Installing..."
-      helm install -n issue-${CI_COMMIT_REF_NAME} \
-        --namespace dacap-alpha \
-        --set environment.proxy_url=${url_schema}${ingress_host}${ingress_path}/${CI_COMMIT_REF_NAME}/ \
-        --set environment.http_proxy=http://proxy.uni-leipzig.de:3128 \
-        --set ingress.path=${ingress_path}/${CI_COMMIT_REF_NAME} \
-        --set ingress.hosts[0]=${ingress_host} \
-        --set image.tag=alpha-${CI_COMMIT_REF_NAME} \
-        --set pullPolicy=Always \
-        ./webmasterei/dacap/
-    else
-      echo "Release already installed. Upgrading..."
-      helm upgrade issue-${CI_COMMIT_REF_NAME} \
-        --recreate-pods \
-        --reuse-values \
-        --set foo=bar \
-        ./webmasterei/dacap/
-    fi
-
-    echo "Waiting for successful deploy..."
-    counter=0
-    while [ "$(helm ls | grep issue-${CI_COMMIT_REF_NAME} | awk -F"\t" '{ print $4; }')" != "DEPLOYED" ]; do
-      sleep 1
-      if [ $counter -eq 60 ];then break && false; fi
-      counter=$[$counter+1];
-    done
+    deployer deploy \
+      --cluster-url "${K8S_ALPHA_CLUSTER_URL}" \
+      --certificate-authority "${K8S_ALPHA_CLUSTER_CA}" \
+      --token "${K8S_ALPHA_DEPLOY_TOKEN}" \
+      --namespace "${K8S_ALPHA_CLUSTER_NAMESPACE}" \
+      --service-account "${K8S_ALPHA_DEPLOY_USER}" \
+      --name issue-${CI_COMMIT_REF_NAME} \
+      --set-string environment.proxy_url=${url_schema}${ingress_host}${ingress_path}/${CI_COMMIT_REF_NAME}/ \
+      --set-string environment.http_proxy=http://proxy.uni-leipzig.de:3128 \
+      --set-string ingress.path=${ingress_path}/${CI_COMMIT_REF_NAME} \
+      --set-string ingress.hosts[0]=${ingress_host} \
+      --set-string image.tag=alpha-${CI_COMMIT_REF_NAME} \
+      --set-string pullPolicy=Always \
+      --charts ./helmcharts
   dependencies:
   - docker_publish_alpha
   tags:
   - docker
   only:
-  - /^[0-9]+-/
+  - branches
   except:
-  - tags
+  - master
 
 deploy_staging:
   stage: deploy
-  image: dtzar/helm-kubectl:2.9.1
+  image: ubleipzig/deployer:1.0.0
   variables:
-    k8s_namespace: dacap_staging
     url_schema: https://
     ingress_host: staging.ub.uni-leipzig.de
     ingress_path: /dacap
   environment:
     name: staging
-    url: https://alpha.ub.uni-leipzig.de/dacap/admin
+    url: https://staging.ub.uni-leipzig.de/dacap/admin
   script: |
-    test "${KUBE_CONFIG}" == "" && echo "kubeconfig does not exists, aborting!" && false
-    mkdir ~/.kube && echo "${KUBE_CONFIG}" > ~/.kube/config
+    deployer deploy \
+      --cluster-url "${K8S_STAGING_CLUSTER_URL}" \
+      --certificate-authority "${K8S_STAGING_CLUSTER_CA}" \
+      --token "${K8S_STAGING_DEPLOY_TOKEN}" \
+      --namespace "${K8S_STAGING_CLUSTER_NAMESPACE}" \
+      --service-account "${K8S_STAGING_DEPLOY_USER}" \
+      --name staging \
+      --set-string environment.proxy_url=${url_schema}${ingress_host}${ingress_path}/ \
+      --set-string environment.http_proxy=http://proxy.uni-leipzig.de:3128 \
+      --set-string ingress.path=${ingress_path} \
+      --set-string ingress.hosts[0]=${ingress_host} \
+      --set-string image.tag=staging \
+      --set-string pullPolicy=Always \
+      --charts ./helmcharts
 
-    test "$(helm ls --deleted --failed --short | grep staging)" != "" && helm delete --purge staging
-
-    git clone https://git.sc.uni-leipzig.de/ubl/bdd_dev/webmasterei/helm-charts.git/
-    cd helm-charts
-
-    if [ "$(helm ls | grep staging | grep DEPLOYED)" == "" ];then
-      echo "Release not installed. Installing..."
-      helm install -n staging \
-        --namespace dacap-staging \
-        --set environment.proxy_url=${url_schema}${ingress_host}${ingress_path} \
-        --set environment.http_proxy=http://proxy.uni-leipzig.de:3128 \
-        --set ingress.path=${ingress_path} \
-        --set ingress.hosts[0]=${ingress_host} \
-        --set image.tag=staging \
-        --set pullPolicy=Always \
-        ./webmasterei/dacap/
-    else
-      echo "Release already installed. Upgrading..."
-      helm upgrade staging \
-        --recreate-pods \
-        --reuse-values \
-        --set foo=bar \
-        ./webmasterei/dacap/
-    fi
-
-    echo "Waiting for successful deploy..."
-    counter=0
-    while [ "$(helm ls | grep staging | awk -F"\t" '{ print $4; }')" != "DEPLOYED" ]; do
-      sleep 1
-      if [ $counter -eq 60 ];then break && false; fi
-      counter=$[$counter+1];
-    done
   dependencies:
   - docker_publish_staging
   tags:
@@ -280,9 +228,8 @@ deploy_staging:
 
 deploy_production:
   stage: deploy
-  image: dtzar/helm-kubectl:2.9.1
+  image: ubleipzig/deployer:1.0.0
   variables:
-    k8s_namespace: dacap_production
     url_schema: https://
     ingress_host: api.ub.uni-leipzig.de
     ingress_path: /dacap
@@ -291,41 +238,22 @@ deploy_production:
     url: https://api.ub.uni-leipzig.de/dacap/admin
   script: |
     version=`expr ${CI_COMMIT_TAG} ':' 'release/\(.\+\)'`
-    test "${KUBE_CONFIG}" == "" && echo "kubeconfig does not exists, aborting!" && false
-    mkdir ~/.kube && echo "${KUBE_CONFIG}" > ~/.kube/config
-
-    git clone https://git.sc.uni-leipzig.de/ubl/bdd_dev/webmasterei/helm-charts.git/
-    cd helm-charts
-
-    if [ "$(helm ls | grep production | grep DEPLOYED)" == "" ];then
-      echo "Release not installed. Installing..."
-      helm install -n production \
-        --namespace dacap-production \
-        --set environment.proxy_url=${url_schema}${ingress_host}${ingress_path}/ \
-        --set environment.http_proxy=http://proxy.uni-leipzig.de:3128 \
-        --set ingress.path=${ingress_path} \
-        --set ingress.hosts[0]=${ingress_host} \
-        --set image.tag=${version} \
-        --set pullPolicy=Always \
-        ./webmasterei/dacap/
-    else
-      echo "Release already installed. Upgrading..."
-      helm upgrade production \
-        --recreate-pods \
-        --reuse-values \
-        --set foo=bar \
-        ./webmasterei/dacap/
-    fi
-
-    echo "Waiting for successful deploy..."
-    counter=0
-    while [ "$(helm ls | grep production | awk -F"\t" '{ print $4; }')" != "DEPLOYED" ]; do
-      sleep 1
-      if [ $counter -eq 60 ];then break && false; fi
-      counter=$[$counter+1];
-    done
+    deployer deploy \
+      --cluster-url "${K8S_PRODUCTION_CLUSTER_URL}" \
+      --certificate-authority "${K8S_PRODUCTION_CLUSTER_CA}" \
+      --token "${K8S_PRODUCTION_DEPLOY_TOKEN}" \
+      --namespace "${K8S_PRODUCTION_CLUSTER_NAMESPACE}" \
+      --service-account "${K8S_PRODUCTION_DEPLOY_USER}" \
+      --name live \
+      --set-string environment.proxy_url=${url_schema}${ingress_host}${ingress_path}/ \
+      --set-string environment.http_proxy=http://proxy.uni-leipzig.de:3128 \
+      --set-string ingress.path=${ingress_path} \
+      --set-string ingress.hosts[0]=${ingress_host} \
+      --set-string image.tag=${version} \
+      --set-string pullPolicy=Always \
+      --charts ./helmcharts
   dependencies:
-  - docker_publish_staging
+  - docker_publish_production
   tags:
   - docker
   only:
@@ -362,3 +290,6 @@ github_mirror:
     git push --mirror github
   tags:
   - docker
+  only:
+  - master
+  - /^release\/.*/
