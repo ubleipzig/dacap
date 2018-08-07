@@ -71,7 +71,11 @@ docker_build:
   services:
   - docker:dind
   script: |
-    deployer build --output image.tar.gz
+    deployer build \
+      --build-arg HTTP_PROXY="${HTTP_PROXY}" \
+      --build-arg HTTPS_PROXY=${HTTPS_PROXY}" \
+      --build-arg NO_PROXY=${NO_PROXY}" \
+      --output image.tar.gz
   dependencies:
   - npm_pack
   artifacts:
