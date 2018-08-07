@@ -19,3 +19,4 @@
 /*.tgz
 /.gitlab-ci.yml
 /.npm
+/helmcharts

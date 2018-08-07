@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.0] - 2018-08-06
+### Changed
+* simplified gitlab-ci
+* auto-deploy to alpha, staging and production
+
+### Added
+* Helm charts
+
 ## [1.0.5] - 2018-06-11
 ### Fixed
 * upgraded dependencies to fix vulnerabilities
