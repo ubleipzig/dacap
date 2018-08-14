@@ -9,6 +9,8 @@ image:
   tag: 1.0.5
   pullPolicy: IfNotPresent
 
+createConfigMap: true
+
 environment:
   autosave_interval: "60"
   cache_ttl: "600"
