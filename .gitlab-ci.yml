@@ -11,7 +11,9 @@ stages:
 
 variables:
   npm_config_cache: ${CI_PROJECT_DIR}/.npm
-  image_name: ubleipzig/dacap
+  production_repo: ubleipzig/dacap
+  staging_repo: services.ub.uni-leipzig.de:11443/bdd_dev/dacap
+  alpha_repo: services.ub.uni-leipzig.de:11443/bdd_dev/dacap
 
 npm_install:
   stage: prepare
@@ -110,9 +112,9 @@ docker_publish_alpha:
   script: |
     deployer publish \
       --input image.tar.gz \
-      --docker-config "${DOCKER_AUTH_CONFIG}" \
-      --name ${image_name} \
-      --tag ${CI_COMMIT_REF_NAME}
+      --docker-config "${DOCKER_ALPHA_AUTH_CONFIG}" \
+      --name ${alpha_repo} \
+      --tag ${CI_COMMIT_REF_SLUG}
   dependencies:
   - docker_build
   tags:
@@ -130,8 +132,8 @@ docker_publish_staging:
   script: |
     deployer publish \
       --input image.tar.gz \
-      --docker-config "$DOCKER_AUTH_CONFIG" \
-      --name ${image_name} \
+      --docker-config "${DOCKER_STAGING_AUTH_CONFIG}" \
+      --name ${staging_repo} \
       --tag staging
   dependencies:
   - docker_build
@@ -146,16 +148,17 @@ docker_publish_production:
   services:
   - docker:dind
   script: |
-    version=`expr ${CI_COMMIT_TAG} ':' 'release/\(.\+\)'`
+    export version=$(expr ${CI_COMMIT_TAG} ':' 'release/\(.\+\)')
+    export major_version=$(expr ${version} ':' '\([^.]\+\)')
+    export minor_version=$(expr ${version} ':' '[^.]\+\.\([^.]\+\)')
     deployer publish \
       --input image.tar.gz
-      --docker-config "$DOCKER_AUTH_CONFIG" \
-      --name ${image_name} \
+      --docker-config "$DOCKER_LIVE_AUTH_CONFIG" \
+      --name ${production_repo} \
       --tag latest \
       --tag ${version} \
-      --tag $(expr ${version} ':' '\([^.]\+\)') \
-      --tag $(expr ${version} ':' '[^.]\+\.\([^.]\+\)') \
-      --tag $(expr ${version} ':' '[^.]\+\.[^.]\+\.\(.\+\))`
+      --tag "${major_version}.${minor_version}" \
+      --tag "${major_version}"
   dependencies:
   - docker_build
   tags:
@@ -167,14 +170,14 @@ docker_publish_production:
 
 deploy_alpha:
   stage: deploy
-  image: ubleipzig/deployer:1.0.0
+  image: ubleipzig/deployer:1.1.0
   variables:
     url_schema: https://
     ingress_host: alpha.ub.uni-leipzig.de
     ingress_path: /dacap
   environment:
-    name: alpha/${CI_COMMIT_REF_NAME}
-    url: https://alpha.ub.uni-leipzig.de/dacap/${CI_COMMIT_REF_NAME}/admin
+    name: alpha/${CI_COMMIT_REF_SLUG}
+    url: https://alpha.ub.uni-leipzig.de/dacap/${CI_COMMIT_REF_SLUG}/admin
   script: |
     deployer deploy \
       --cluster-url "${K8S_ALPHA_CLUSTER_URL}" \
@@ -182,14 +185,16 @@ deploy_alpha:
       --token "${K8S_ALPHA_DEPLOY_TOKEN}" \
       --namespace "${K8S_ALPHA_CLUSTER_NAMESPACE}" \
       --service-account "${K8S_ALPHA_DEPLOY_USER}" \
-      --name issue-${CI_COMMIT_REF_NAME} \
-      --set-string environment.proxy_url=${url_schema}${ingress_host}${ingress_path}/${CI_COMMIT_REF_NAME}/ \
+      --name issue-${CI_COMMIT_REF_SLUG} \
+      --set-string environment.proxy_url=${url_schema}${ingress_host}${ingress_path}/${CI_COMMIT_REF_SLUG}/ \
       --set-string environment.http_proxy=http://proxy.uni-leipzig.de:3128 \
-      --set-string ingress.path=${ingress_path}/${CI_COMMIT_REF_NAME} \
+      --set-string ingress.path=${ingress_path}/${CI_COMMIT_REF_SLUG} \
       --set-string ingress.hosts[0]=${ingress_host} \
-      --set-string image.tag=alpha-${CI_COMMIT_REF_NAME} \
+      --set-string image.repository=${alpha_repo} \
+      --set-string image.tag=${CI_COMMIT_REF_SLUG} \
       --set-string pullPolicy=Always \
-      --charts ./helmcharts
+      --set-string dockerconfigjson=$(echo $(echo "${DOCKER_ALPHA_AUTH_CONFIG}"|base64)|tr -d " ") \
+      --charts ./helmchart
   dependencies:
   - docker_publish_alpha
   tags:
@@ -198,6 +203,25 @@ deploy_alpha:
   - branches
   except:
   - master
+
+undeploy_alpha:
+  stage: deploy
+  image: ubleipzig/deployer:1.0.0
+  script: |
+    deployer undeploy \
+      --cluster-url "${K8S_ALPHA_CLUSTER_URL}" \
+      --certificate-authority "${K8S_ALPHA_CLUSTER_CA}" \
+      --token "${K8S_ALPHA_DEPLOY_TOKEN}" \
+      --namespace "${K8S_ALPHA_CLUSTER_NAMESPACE}" \
+      --service-account "${K8S_ALPHA_DEPLOY_USER}" \
+      --name issue-${CI_COMMIT_REF_SLUG}
+  tags:
+  - docker
+  only:
+  - branches
+  except:
+  - master
+  when: manual
 
 deploy_staging:
   stage: deploy
@@ -221,9 +245,11 @@ deploy_staging:
       --set-string environment.http_proxy=http://proxy.uni-leipzig.de:3128 \
       --set-string ingress.path=${ingress_path} \
       --set-string ingress.hosts[0]=${ingress_host} \
+      --set-string image.repository=${alpha_repo} \
       --set-string image.tag=staging \
       --set-string pullPolicy=Always \
-      --charts ./helmcharts
+      --set-string dockerconfigjson=$(echo $(echo "${DOCKER_STAGING_AUTH_CONFIG}"|base64)|tr -d " ") \
+      --charts ./helmchart
 
   dependencies:
   - docker_publish_staging
@@ -257,7 +283,7 @@ deploy_production:
       --set-string ingress.hosts[0]=${ingress_host} \
       --set-string image.tag=${version} \
       --set-string pullPolicy=Always \
-      --charts ./helmcharts
+      --charts ./helmchart
   dependencies:
   - docker_publish_production
   tags:
