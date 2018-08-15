@@ -92,9 +92,10 @@ npm_publish:
   image:
     name: node:10-alpine
     entrypoint: ["/bin/su", "node", "-c"]
-  script:
-  - 'echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc'
-  - npm publish *.tgz --access public
+  script: |
+    test "${NPM_TOKEN}" == "" && echo "no npm token found" && false
+    echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+    npm publish *.tgz --access public
   dependencies:
   - npm_pack
   tags:
@@ -152,8 +153,8 @@ docker_publish_production:
     export major_version=$(expr ${version} ':' '\([^.]\+\)')
     export minor_version=$(expr ${version} ':' '[^.]\+\.\([^.]\+\)')
     deployer publish \
-      --input image.tar.gz
-      --docker-config "$DOCKER_LIVE_AUTH_CONFIG" \
+      --input image.tar.gz \
+      --docker-config "${DOCKER_LIVE_AUTH_CONFIG}" \
       --name ${production_repo} \
       --tag latest \
       --tag ${version} \
